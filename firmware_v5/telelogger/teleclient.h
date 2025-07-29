@@ -1,5 +1,5 @@
 #include "config.h"
-
+#if 0
 #define EVENT_LOGIN 1
 #define EVENT_LOGOUT 2
 #define EVENT_SYNC 3
@@ -7,7 +7,17 @@
 #define EVENT_COMMAND 5
 #define EVENT_ACK 6
 #define EVENT_PING 7
-
+#else
+typedef enum {
+    EVENT_LOGIN = 1,
+    EVENT_LOGOUT,
+    EVENT_SYNC,
+    EVENT_RECONNECT,
+    EVENT_COMMAND,
+    EVENT_ACK,
+    EVENT_PING,
+} DEVICE_EVENT;
+#endif
 #define BUFFER_STATE_EMPTY 0
 #define BUFFER_STATE_FILLING 1
 #define BUFFER_STATE_FILLED 2
@@ -69,7 +79,11 @@ public:
         login = false;
         startTime = millis();
     }
+    #if 0
     virtual bool notify(byte event, const char* payload = 0) { return true; }
+    #else
+    virtual bool notify(DEVICE_EVENT event, const char* payload = 0) { return true; }
+    #endif
     virtual bool connect() { return true; }
     virtual bool transmit(const char* packetBuffer, unsigned int packetSize)  { return true; }
     virtual void inbound() {}
@@ -86,7 +100,11 @@ public:
 class TeleClientUDP : public TeleClient
 {
 public:
+    # if 0
     bool notify(byte event, const char* payload = 0);
+    #else
+    bool notify(DEVICE_EVENT event, const char* payload = 0);
+    #endif
     bool connect(bool quick = false);
     bool transmit(const char* packetBuffer, unsigned int packetSize);
     bool ping();

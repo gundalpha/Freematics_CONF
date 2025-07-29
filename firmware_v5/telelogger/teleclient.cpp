@@ -224,8 +224,11 @@ bool TeleClientUDP::verifyChecksum(char* data)
   }
   return false;
 }
-
+#if 0
 bool TeleClientUDP::notify(byte event, const char* payload)
+#else
+bool TeleClientUDP::notify(DEVICE_EVENT event, const char* payload)
+#endif
 {
   char buf[48];
   char cache[128];
@@ -321,7 +324,11 @@ bool TeleClientUDP::notify(byte event, const char* payload)
 
 bool TeleClientUDP::connect(bool quick)
 {
+  #if 0
   byte event = login ? EVENT_RECONNECT : EVENT_LOGIN;
+  #else
+  DEVICE_EVENT event = login ? EVENT_RECONNECT : EVENT_LOGIN;
+  #endif
   bool success = false;
 #if ENABLE_WIFI
   if (wifi.connected())
