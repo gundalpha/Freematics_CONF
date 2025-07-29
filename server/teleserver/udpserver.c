@@ -114,7 +114,11 @@ int incomingUDPCallback(void* _hp)
 	uint64_t serverTick = GetTickCount64();
 	uint32_t deviceTick = 0;
 	uint32_t token = 0;
+	#if 0
 	uint16_t eventID = 0;
+	#else
+	DEVICE_EVENT eventID = 0;
+	#endif
 	uint16_t devflags = 0;
 	int rssi = 0;
 
