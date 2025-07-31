@@ -1150,7 +1150,7 @@ int main(int argc,char* argv[])
 	httpParam.maxClients = 256;
 	httpParam.maxClientsPerIP = 16;
 	httpParam.httpPort = 8080;
-	httpParam.udpPort = 8081;
+	httpParam.udpPort = 33000;
 	httpParam.pxUrlHandler = urlHandlerList;
 	httpParam.hlBindIP = htonl(INADDR_ANY);
 	httpParam.pfnIncomingUDP = incomingUDPCallback;
@@ -1181,7 +1181,7 @@ int main(int argc,char* argv[])
 					fprintf(stderr, "Usage: teleserver\n"
 						"	-h	: display this help screen\n"
 						"	-p	: specifiy http port [default 8080]\n"
-						"	-u	: specifiy udp port [default 8081]\n"
+						"	-u	: specifiy udp port [default 33000]\n"
 						"	-l	: specify log file directory\n"
 						"	-d	: specify data file directory\n"
 						"	-m	: specifiy max clients [default 256]\n"
