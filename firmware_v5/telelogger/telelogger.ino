@@ -42,6 +42,8 @@
 #define STATE_WORKING 0x100
 #define STATE_STANDBY 0x200
 
+#define PID_GEAR  0xA4
+
 typedef struct {
   byte pid;
   byte tier;
@@ -50,14 +52,21 @@ typedef struct {
 } PID_POLLING_INFO;
 
 PID_POLLING_INFO obdData[]= {
-  {PID_SPEED, 1},
-  {PID_RPM, 1},
-  {PID_THROTTLE, 1},
+  {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
+  {PID_RUNTIME,  2}, // Driving Time
+  {PID_DISTANCE, 2}, // Driving Distance
+  {PID_MAF_FLOW, 2},  // MAF to Fuel Consumption (per Second)
+  {PID_FUEL_LEVEL, 1},   // Fuel Level  --> Average Fuel Level
+  {PID_COOLANT_TEMP, 3}, //Coolant Temp
+  {PID_RPM, 1},         // RPM
+  {PID_ODOMETER, 4},    // ODO Meter(4자리)
+  {PID_ENGINE_OIL_TEMP, 1}, // Engine Oil Temp.
   {PID_ENGINE_LOAD, 1},
-  {PID_FUEL_PRESSURE, 2},
-  {PID_TIMING_ADVANCE, 2},
-  {PID_COOLANT_TEMP, 3},
-  {PID_INTAKE_TEMP, 3},
+  {PID_GEAR, 3},        // Is this pid for gear position ? let's check
+  //{PID_THROTTLE, 1},
+  //{PID_FUEL_PRESSURE, 2},
+  //{PID_TIMING_ADVANCE, 2},
+  //{PID_INTAKE_TEMP, 3},
 };
 
 CBufferManager bufman;
