@@ -1,3 +1,5 @@
+#define PID_MIL_STATUS 0x101 // Adding for MIL/CEL(4B)
+#define PID_DTC_STORED 0x102 // Adding for DTC(2B)
 #define PID_RPM 0x10C
 #define PID_SPEED 0x10D
 #define PID_THROTTLE 0x111
@@ -14,6 +16,9 @@
 #define PID_FUEL_LEVEL 0x12F
 #define PID_RUNTIME 0x11F
 #define PID_DISTANCE 0x131
+#define PID_ENGINE_OIL_TEMP	0x15C  //(1B)
+#define PID_GEAR 0x1A4 //(3B)
+#define PID_ODOMETER 0x1A6 //(4B)
 
 #define PID_GPS_LATITUDE 0xA
 #define PID_GPS_LONGITUDE 0xB

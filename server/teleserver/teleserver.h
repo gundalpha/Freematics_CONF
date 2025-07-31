@@ -39,6 +39,7 @@
 #define MIN_LOGIN_INTERVAL 30000
 #define PROXY_MAX_TIME_BEHIND 1000
 
+#if 0
 #define EVENT_LOGIN 1
 #define EVENT_LOGOUT 2
 #define EVENT_SYNC 3
@@ -46,6 +47,17 @@
 #define EVENT_COMMAND 5
 #define EVENT_ACK 6
 #define EVENT_PING 7
+#else
+typedef enum {
+	EVENT_LOGIN = 1,
+	EVENT_LOGOUT,
+	EVENT_SYNC,
+	EVENT_RECONNECT,
+	EVENT_COMMAND,
+	EVENT_ACK,
+	EVENT_PING,
+} DEVICE_EVENT;
+#endif
 
 typedef enum {
 	DEVICE_VEHICLE = 0,
