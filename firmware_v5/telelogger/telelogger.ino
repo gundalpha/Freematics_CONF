@@ -45,10 +45,10 @@
 #define PID_GEAR  0xA4
 
 typedef struct {
-  byte pid;
-  byte tier;
-  int value;
-  uint32_t ts;
+  byte pid;   // PID number
+  byte tier;  // Size of the PID value
+  int value;  // Value of the PID
+  uint32_t ts; // Timestamp 
 } PID_POLLING_INFO;
 
 PID_POLLING_INFO obdData[]= {
