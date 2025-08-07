@@ -43,6 +43,7 @@
 #define STATE_STANDBY 0x200
 
 #define PID_GEAR  0xA4
+#define PID_AUX_BATTERY 0x24
 
 typedef struct {
   byte pid;   // PID number
@@ -63,6 +64,7 @@ PID_POLLING_INFO obdData[]= {
   {PID_ENGINE_OIL_TEMP, 1}, // Engine Oil Temp.
   {PID_ENGINE_LOAD, 1},
   {PID_GEAR, 3},        // Is this pid for gear position ? let's check
+  {PID_AUX_BATTERY, 1},
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},

@@ -1,0 +1,18 @@
+2025-08-07 10:34:58,751 - __main__ - INFO - PostgreSQL 데이터베이스 연결 성공
+2025-08-07 10:34:58,759 - __main__ - INFO - Loaded 0 channels from database
+2025-08-07 10:34:58,760 - __main__ - INFO - Starting Flask TeleServer on port 8080
+2025-08-07 10:34:58,762 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://129.254.190.178:8080
+2025-08-07 10:34:58,762 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-08-07 11:19:55,894 - __main__ - INFO - PostgreSQL 데이터베이스 연결 성공
+2025-08-07 11:22:16,646 - __main__ - INFO - PostgreSQL 데이터베이스 연결 성공
+2025-08-07 11:22:16,654 - __main__ - INFO - Loaded 0 channels from database
+2025-08-07 11:22:16,654 - __main__ - INFO - UDP 서버가 포트 33000에서 시작되었습니다.
+2025-08-07 11:22:16,655 - __main__ - INFO - Starting Flask TeleServer on port 8080
+2025-08-07 11:22:16,657 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://129.254.190.178:8080
+2025-08-07 11:22:16,657 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
