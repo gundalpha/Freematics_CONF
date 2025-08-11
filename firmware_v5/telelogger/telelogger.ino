@@ -42,9 +42,11 @@
 #define STATE_WORKING 0x100
 #define STATE_STANDBY 0x200
 
+// Private PIDS
 #define PID_GEAR  0xA4
 #define PID_AUX_BATTERY 0x24
-
+#define PID_FUEL_TYPE 0x51
+#define PID_DTC_STORED 0x102 // Adding for DTC(2B)
 typedef struct {
   byte pid;   // PID number
   byte tier;  // Size of the PID value
@@ -64,7 +66,9 @@ PID_POLLING_INFO obdData[]= {
   {PID_ENGINE_OIL_TEMP, 1}, // Engine Oil Temp.
   {PID_ENGINE_LOAD, 1},
   {PID_GEAR, 3},        // Is this pid for gear position ? let's check
+  {PID_HYBRID_BATTERY_PERCENTAGE, 1},
   {PID_AUX_BATTERY, 1},
+  {PID_FUEL_TYPE, 1},
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},
@@ -90,6 +94,9 @@ char apn[32];
 char wifiSSID[32] = WIFI_SSID;
 char wifiPassword[32] = WIFI_PASSWORD;
 #endif
+int tripID = 0;  // Trip ID  
+int dtcCount = 0; // Stored DTC Count for sendDTC()
+uint16_t DTC_Stored[60]; // 최대30개 DTC  
 nvs_handle_t nvs;
 
 // live data
@@ -495,7 +502,16 @@ void printTime()
     Serial.println(buf);
   }
 }
-
+void sendDTC(CBuffer* buffer)
+{
+  Serial.print("DTC:");
+  Serial.println(dtcCount);
+  for (byte i = 0; i < dtcCount; i++) {
+    if (buffer) {
+      buffer->add(PID_DTC_STORED, ELEMENT_UINT16, &DTC_Stored[i], sizeof(uint16_t));
+    } 
+  }
+} 
 /*******************************************************************************
   Initializing all data logging components
 *******************************************************************************/
@@ -557,7 +573,9 @@ void initialize()
       Serial.print("VIN:");
       Serial.println(vin);
     }
-    int dtcCount = obd.readDTC(dtc, sizeof(dtc) / sizeof(dtc[0]));
+    //
+    // int dtcCount = obd.readDTC(dtc, sizeof(dtc) / sizeof(dtc[0]));
+    dtcCount = obd.readDTC(DTC_Stored, sizeof(DTC_Stored) / sizeof(DTC_Stored[0]));
     if (dtcCount > 0) {
       Serial.print("DTC:");
       Serial.println(dtcCount);
@@ -665,9 +683,19 @@ void process()
 {
   static uint32_t lastGPStick = 0;
   uint32_t startTime = millis();
-
+  uint32_t oldtripID = 0;
   CBuffer* buffer = bufman.getFree();
   buffer->state = BUFFER_STATE_FILLING;
+
+  // Confitech add new Trip ID, 0x30
+  buffer->add(PID_TRIP_ID, ELEMENT_INT32, &tripID, sizeof(tripID));
+
+  //Send DTC Code First time
+  if(dtcCount > 0 && oldtripID!= tripID)
+  {
+    sendDTC(buffer);
+    oldtripID = tripID;
+  }
 
 #if ENABLE_OBD
   // process OBD data if connected
@@ -1206,6 +1234,22 @@ void loadConfig()
   len = sizeof(wifiPassword);
   nvs_get_str(nvs, "WIFI_PWD", wifiPassword, &len);
 #endif
+// Trip ID reading from NVS
+  len = sizeof(tripID);
+  nvs_get_i32(nvs, "TRIP_ID", &tripID);
+  
+  Serial.print("TRIP_ID:");
+  Serial.println(tripID);
+}
+// For ConfiTech 
+void saveTripID()
+{  
+  nvs_get_i32(nvs, "TRIP_ID", &tripID);
+  //if (tripID == 0) tripID = 1;
+  nvs_set_i32(nvs, "TRIP_ID", tripID++);
+  nvs_commit(nvs);
+  Serial.print("TRIP_ID:");
+  Serial.println(tripid); 
 }
 
 void processBLE(int timeout)
@@ -1480,6 +1524,9 @@ if (!state.check(STATE_MEMS_READY)) do {
   // initialize components
   initialize();
 
+  //Save new Trip ID, Confi
+  saveTripID();
+
   // initialize network and maintain connection
   subtask.create(telemetry, "telemetry", 2, 8192);
 
@@ -1502,7 +1549,7 @@ void loop()
 #endif
     return;
   }
-
+  
   // collect and log data
   process();
 }
