@@ -3,7 +3,12 @@ menu "Telelogger Configuration"
     config ENABLE_OBD
         bool "Enable OBD Connection"
         default "y"
+ 
+   config OBD_SIMULATION
+        bool "OBD Device Simulation for Confitech"
+        default "n"
 
+ 
     config ENABLE_MEMS
         bool "Enable MEMS Motion Sensor"
         default "y"

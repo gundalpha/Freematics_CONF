@@ -336,10 +336,14 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		// save data to log file
 		if (pld->fp) {
 			fprintf(pld->fp, "%s\n", payload);
+			fflush(pld->fp);
 		}
 	}
 
 	char *p = payload;
+	//should be read TRIP_ID, first
+	int tripID = 0;
+
 	uint32_t ts = 0;
 	int count = 0;
 	do {
@@ -355,6 +359,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		p = strchr(p, ',');
 		if (p) *(p++) = 0;
 		size_t len = strlen(value);
+		printf("PID = %x, value = %s\n", pid, value);
 		if (len >= MAX_PID_DATA_LEN) len = MAX_PID_DATA_LEN - 1;
 		// now we have pid and value
 		if (pid == 0) {

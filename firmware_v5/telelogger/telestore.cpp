@@ -1,6 +1,18 @@
 #include <FreematicsPlus.h>
 #include "telestore.h"
 
+void CStorage::log(uint16_t pid, char values[], uint8_t count)
+{
+    char buf[256];
+    byte n = snprintf(buf, sizeof(buf), "%X%c%s;", pid, m_delimiter, (char*)values);
+    //for (byte m = 1; m < count; m++) {
+    //    n += snprintf(buf + n, sizeof(buf) - n, "%c", (unsigned int)values[m]);
+    //}
+    Serial.println(buf);
+    
+    dispatch(buf, n);
+}
+
 void CStorage::log(uint16_t pid, uint8_t values[], uint8_t count)
 {
     char buf[256];
@@ -10,6 +22,7 @@ void CStorage::log(uint16_t pid, uint8_t values[], uint8_t count)
     }
     dispatch(buf, n);
 }
+
 
 void CStorage::log(uint16_t pid, uint16_t values[], uint8_t count)
 {

@@ -3,12 +3,14 @@
 #include <SD.h>
 #include <SPIFFS.h>
 
+
 class CStorage;
 
 class CStorage {
 public:
     virtual bool init() { return true; }
     virtual void uninit() {}
+    virtual void log(uint16_t pid, char values[], uint8_t count);
     virtual void log(uint16_t pid, uint8_t values[], uint8_t count);
     virtual void log(uint16_t pid, uint16_t values[], uint8_t count);
     virtual void log(uint16_t pid, uint32_t values[], uint8_t count);

@@ -23,6 +23,7 @@ typedef enum {
 #define BUFFER_STATE_FILLED 2
 #define BUFFER_STATE_LOCKED 3
 
+#define ELEMENT_CHAR 10 
 #define ELEMENT_UINT8 0
 #define ELEMENT_UINT16 1
 #define ELEMENT_UINT32 2
@@ -34,6 +35,7 @@ typedef enum {
 typedef struct {
     uint16_t pid;
     uint8_t type;
+    uint8_t bytes;
     uint8_t count;
 } ELEMENT_HEAD;
 

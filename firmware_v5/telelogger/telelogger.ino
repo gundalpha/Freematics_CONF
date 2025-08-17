@@ -30,6 +30,7 @@
 #include "FreematicsOLED.h"
 #endif
 
+
 // states
 #define STATE_STORAGE_READY 0x1
 #define STATE_OBD_READY 0x2
@@ -41,6 +42,9 @@
 #define STATE_WIFI_CONNECTED 0x80
 #define STATE_WORKING 0x100
 #define STATE_STANDBY 0x200
+
+#define PID_VIN_ID  0x40
+#define PID_TRIP_ID 0x50
 
 // Private PIDS
 #define PID_GEAR  0xA4
@@ -133,6 +137,7 @@ void serverProcess(int timeout);
 void processMEMS(CBuffer* buffer);
 bool processGPS(CBuffer* buffer);
 void processBLE(int timeout);
+void saveTripID();
 
 class State {
 public:
@@ -255,34 +260,61 @@ void processOBD(CBuffer* buffer)
 {
   static int idx[2] = {0, 0};
   int tier = 1;
+  
+  Serial.print("Total OBD Data ");
+  Serial.println(sizeof(obdData));
+  Serial.print(" Count ");
+  Serial.println(sizeof(obdData)/sizeof(obdData[0]));
   for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
+    
+
+#ifdef OBD_SIMULATION
+    {
+
+      int value = i;
+      byte pid = obdData[i].pid;
+      obdData[i].ts = millis();
+      obdData[i].value = value  ;
+      Serial.print("OBD Simulation mode");
+      Serial.print(pid);
+      Serial.print(" Value ");
+      Serial.println(value);
+      buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
+    } 
+#else
     if (obdData[i].tier > tier) {
-        // reset previous tier index
-        idx[tier - 2] = 0;
-        // keep new tier number
-        tier = obdData[i].tier;
-        // move up current tier index
-        i += idx[tier - 2]++;
-        // check if into next tier
-        if (obdData[i].tier != tier) {
-            idx[tier - 2]= 0;
-            i--;
-            continue;
-        }
+      // reset previous tier index
+      idx[tier - 2] = 0;
+      // keep new tier number
+      tier = obdData[i].tier;
+      // move up current tier index
+      i += idx[tier - 2]++;
+      // check if into next tier
+      if (obdData[i].tier != tier) {
+          idx[tier - 2]= 0;
+          i--;
+          continue;
+      }
     }
-    byte pid = obdData[i].pid;
-    if (!obd.isValidPID(pid)) continue;
-    int value;
-    if (obd.readPID(pid, value)) {
-        obdData[i].ts = millis();
-        obdData[i].value = value;
-        buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
-    } else {
-        timeoutsOBD++;
-        printTimeoutStats();
-        break;
+    {
+      byte pid = obdData[i].pid;
+      if (!obd.isValidPID(pid)) 
+      {
+        continue;
+      }
+      int value;
+      if (obd.readPID(pid, value)) {
+          obdData[i].ts = millis();
+          obdData[i].value = value;
+          buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
+      } else {
+          timeoutsOBD++;
+          printTimeoutStats();
+          break;
+      }
     }
     if (tier > 1) break;
+    #endif
   }
   int kph = obdData[0].value;
   if (kph >= 2) lastMotionTime = millis();
@@ -546,6 +578,10 @@ void initialize()
 #endif
     } else {
       Serial.println("OBD:NO");
+#if OBD_SIMULATION
+      state.set(STATE_OBD_READY);
+      Serial.println("OBD:NO(SIMULATION)");
+#endif
       //state.clear(STATE_WORKING);
       //return;
     }
@@ -568,11 +604,17 @@ void initialize()
 #if ENABLE_OBD
   if (state.check(STATE_OBD_READY)) {
     char buf[128];
+  #if OBD_SIMULATION
+      memcpy(vin, "SIM_01234567890123", sizeof(vin)-1);
+      Serial.print("SIMULATED VIN: ");
+      Serial.println(vin);
+  #else
     if (obd.getVIN(buf, sizeof(buf))) {
       memcpy(vin, buf, sizeof(vin) - 1);
       Serial.print("VIN:");
       Serial.println(vin);
     }
+  #endif
     //
     // int dtcCount = obd.readDTC(dtc, sizeof(dtc) / sizeof(dtc[0]));
     dtcCount = obd.readDTC(DTC_Stored, sizeof(DTC_Stored) / sizeof(DTC_Stored[0]));
@@ -687,14 +729,19 @@ void process()
   CBuffer* buffer = bufman.getFree();
   buffer->state = BUFFER_STATE_FILLING;
 
-  // Confitech add new Trip ID, 0x30
+  // Confitech add new 0x20, VIN ID
+  Serial.print("Sending VIN :");
+  Serial.println(vin);
+  buffer->add(PID_VIN_ID, ELEMENT_CHAR, &vin, 18);
+// Confitech add new Trip ID, 0x30
   buffer->add(PID_TRIP_ID, ELEMENT_INT32, &tripID, sizeof(tripID));
-
+  
   //Send DTC Code First time
   if(dtcCount > 0 && oldtripID!= tripID)
   {
     sendDTC(buffer);
     oldtripID = tripID;
+    //saveTripID();
   }
 
 #if ENABLE_OBD
@@ -1245,11 +1292,19 @@ void loadConfig()
 void saveTripID()
 {  
   nvs_get_i32(nvs, "TRIP_ID", &tripID);
-  //if (tripID == 0) tripID = 1;
-  nvs_set_i32(nvs, "TRIP_ID", tripID++);
+  //if (tripID == 0) tripID = 1;VIN
+  tripID++;
+  nvs_set_i32(nvs, "TRIP_ID", tripID);
   nvs_commit(nvs);
-  Serial.print("TRIP_ID:");
-  Serial.println(tripid); 
+  Serial.print("Saved TRIP_ID:");
+  Serial.println(tripID);
+
+  // Trip ID reading from NVS
+  uint8_t len = sizeof(tripID);
+  nvs_get_i32(nvs, "TRIP_ID", &tripID);
+  
+  Serial.print("Re-read TRIP_ID:");
+  Serial.println(tripID);
 }
 
 void processBLE(int timeout)

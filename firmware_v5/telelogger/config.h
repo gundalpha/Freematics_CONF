@@ -4,6 +4,11 @@
 #ifdef CONFIG_ENABLE_OBD
 #define ENABLE_OBD CONFIG_ENABLE_OBD
 #endif
+
+#ifdef CONFIG_OBD_SIMULATION
+#define OBD_SIMULATION CONFIG_OBD_SIMULATION
+#endif
+
 #ifdef CONFIG_ENABLE_MEMS
 #define ENABLE_MEMS CONFIG_ENABLE_MEMS
 #endif
@@ -70,6 +75,11 @@
 #ifndef ENABLE_OBD
 #define ENABLE_OBD 1
 #endif
+
+#ifndef OBD_SIMULATION
+#define OBD_SIMULATION 0
+#endif
+
 
 // maximum consecutive OBD access errors before entering standby
 #define MAX_OBD_ERRORS 3

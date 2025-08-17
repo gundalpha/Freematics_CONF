@@ -35,7 +35,8 @@ CBuffer::CBuffer(uint8_t* mem)
 void CBuffer::add(uint16_t pid, uint8_t type, void* values, int bytes, uint8_t count)
 {
   if (offset < BUFFER_LENGTH - sizeof(ELEMENT_HEAD) - bytes) {
-    ELEMENT_HEAD hdr = {pid, type, count};
+
+    ELEMENT_HEAD hdr = {pid, type, bytes, count};
     *(ELEMENT_HEAD*)(m_data + offset) = hdr;
     offset += sizeof(ELEMENT_HEAD);
     memcpy(m_data + offset, values, bytes); 
@@ -61,6 +62,19 @@ void CBuffer::serialize(CStorage& store)
     ELEMENT_HEAD* hdr = (ELEMENT_HEAD*)(m_data + of);
     of += sizeof(ELEMENT_HEAD);
     switch (hdr->type) {
+    case ELEMENT_CHAR:
+      char tmp[32];
+      memcpy(tmp, (char*)(m_data + of), hdr->bytes);
+      tmp[hdr->bytes+1] = '\0';
+      Serial.print("CHAR: ");
+      Serial.print(hdr->pid);
+      Serial.print(" "); 
+      Serial.print(tmp);
+      Serial.print(" bytes ? ");
+      Serial.println(hdr->bytes);
+      store.log(hdr->pid, (char*)(m_data + of), hdr->bytes);
+      of += (uint16_t)hdr->bytes * sizeof(char);
+      break;  
     case ELEMENT_UINT8:
       store.log(hdr->pid, (uint8_t*)(m_data + of), hdr->count);
       of += (uint16_t)hdr->count * sizeof(uint8_t);
