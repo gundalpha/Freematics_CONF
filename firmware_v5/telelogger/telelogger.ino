@@ -831,6 +831,8 @@ void process()
 
   const int dataIntervals[] = DATA_INTERVAL_TABLE;
 #if ENABLE_OBD || ENABLE_MEMS
+
+/*
   // motion adaptive data interval control
   const uint16_t stationaryTime[] = STATIONARY_TIME_TABLE;
   unsigned int motionless = (millis() - lastMotionTime) / 1000;
@@ -851,6 +853,7 @@ void process()
     state.clear(STATE_WORKING);
     return;
   }
+ */ //Confitech
 #else
   dataInterval = dataIntervals[0];
 #endif
