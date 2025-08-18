@@ -120,6 +120,9 @@ typedef struct {
 	uint8_t unused;
 	uint8_t deviceTemp;
 	float sampleRate;
+	uint32_t tripId;
+	float voltage;
+	float mems_acc[3];
 	char vin[20];
 	char devid[32];
 	IPADDR ip;

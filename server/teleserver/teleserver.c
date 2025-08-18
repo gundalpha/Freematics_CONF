@@ -74,6 +74,9 @@ HttpParam httpParam;
 
 char dataDir[256] = "data";
 char logDir[256] = "log";
+char gVIN[18] = "";
+uint32_t gTripID = 0;
+
 char serverKey[256] = { 0 };
 int noGUI = 0;
 
@@ -328,6 +331,7 @@ void deviceLogout(CHANNEL_DATA* pld)
 
 int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 {
+	uint16_t tmpVolt = 0;
 	uint64_t tick = GetTickCount64();
 	if (eventID == 0) {
 		if (!pld->fp && (pld->flags & FLAG_RUNNING)) {
@@ -341,9 +345,6 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 	}
 
 	char *p = payload;
-	//should be read TRIP_ID, first
-	int tripID = 0;
-
 	uint32_t ts = 0;
 	int count = 0;
 	do {
@@ -359,33 +360,61 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		p = strchr(p, ',');
 		if (p) *(p++) = 0;
 		size_t len = strlen(value);
-		printf("PID = %x, value = %s\n", pid, value);
+		//printf("PID = %x, value = %s\n", pid, value);
 		if (len >= MAX_PID_DATA_LEN) len = MAX_PID_DATA_LEN - 1;
 		// now we have pid and value
 		if (pid == 0) {
 			// special PID 0 for timestamp
 			ts = atol(value);
+			fprintf(pld->fp, "TS --> %d\t", ts);
 			continue;
 		}
-		if (ts == 0) {
-			// no valid timestamp yet
-			continue;
-		}
+		
 		// store in table
 		int m = pid >> 8;
 		if (m < PID_MODES) {
+			//printf("M --> %d, pid = %x, value = %s\n", m, pid, value);
 			pld->data[pid].ts = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
 			// collect some stats
 			switch (pid) {
 			case PID_RSSI: /* signal strength */
 				pld->rssi = atoi(value);
+				printf("rssi --> %d\t", pld->rssi);
+				fprintf(pld->fp, "rssi --> %d\t", pld->rssi);
 				break;
 			case PID_DEVICE_TEMP:
 				pld->deviceTemp = atoi(value);
+				printf("deviceTemp --> %d\n", pld->deviceTemp);
+				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
+				break;
+			case PID_VIN_ID:
+				memcpy(&pld->vin, value, strlen(value) - 1);
+				printf("VIN --> %s\t", pld->vin);
+				fprintf(pld->fp, "VIN --> %s\t", pld->vin);
+				break;
+			case PID_TRIP_ID:
+				pld->tripId = atoi(value);
+				printf("tripId --> %d\t", pld->tripId);
+				fprintf(pld->fp, "tripId --> %d\t", pld->tripId);
+				break;
+
+			case PID_BATTERY_VOLTAGE: 
+				tmpVolt = 0;
+				tmpVolt = atoi(value);
+				pld->voltage = tmpVolt / 100;
+				printf("voltage --> %f\t", pld->voltage);
+				fprintf(pld->fp, "voltage --> %f\t", pld->voltage);
+				
+				break;
+			case PID_ACC:
+				sscanf(value, "%f;%f;%f", &pld->mems_acc[0], &pld->mems_acc[1], &pld->mems_acc[2]);
+				printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
+				fprintf(pld->fp, "mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
 				break;
 			}
 		}
+		
 		count++;
 		// store in cache
 		if (pld->cacheReadPos != pld->cacheWritePos && pld->cache[pld->cacheReadPos].ts > ts) {

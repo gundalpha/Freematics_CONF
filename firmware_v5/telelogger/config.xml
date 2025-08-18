@@ -21,10 +21,10 @@
   </define>
   <define name="Cellular Network APN" const="CELL_APN" type="string" default=""/>
   <define name="WiFi Network" const="ENABLE_WIFI" default="true" type="bool"/>
-  <define name="WiFi SSID" const="WIFI_SSID" type="string" dep="ENABLE_WIFI"/>
-  <define name="WiFi Password" const="WIFI_PASSWORD" type="string" dep="ENABLE_WIFI"/>
-  <define name="Server Host" const="SERVER_HOST" type="string" default="hub.freematics.com"/>
-  <define name="Server Port (0 for auto)" const="SERVER_PORT" type="number" default="0"/>
+  <define name="WiFi SSID" const="WIFI_SSID" type="string" default="Xiaomi_506B"  dep="ENABLE_WIFI"/>
+  <define name="WiFi Password" const="WIFI_PASSWORD" type="string" default="2013111111" dep="ENABLE_WIFI"/>
+  <define name="Server Host" const="SERVER_HOST" type="string" default="192.168.31.162"/>
+  <define name="Server Port (0 for auto)" const="SERVER_PORT" type="number" default="33000"/>
   <define name="Transport Protocol">
     <option name="UDP" const="SERVER_PROTOCOL=PROTOCOL_UDP"/>
     <option name="HTTPS GET" const="SERVER_PROTOCOL=PROTOCOL_HTTPS_GET"/>
