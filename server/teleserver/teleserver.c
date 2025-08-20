@@ -82,6 +82,7 @@ int noGUI = 0;
 
 CHANNEL_DATA ld[MAX_CHANNELS];
 
+
 uint8_t hex2uint8(const char *p)
 {
 	uint8_t c1 = *p;
@@ -347,6 +348,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 	char *p = payload;
 	uint32_t ts = 0;
 	int count = 0;
+	unsigned char gatr_scn = 1; // 1: OBD-Auto, 2: Special OBD
 	do {
 		int pid = hex2uint16(p);
 		if (pid == -1) {
@@ -392,6 +394,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				memcpy(&pld->vin, value, strlen(value) - 1);
 				printf("VIN --> %s\t", pld->vin);
 				fprintf(pld->fp, "VIN --> %s\t", pld->vin);
+				InsertMaster(gatr_scn, pld->vin, payload, ts);
 				break;
 			case PID_TRIP_ID:
 				pld->tripId = atoi(value);

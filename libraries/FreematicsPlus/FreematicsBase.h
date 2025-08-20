@@ -30,7 +30,7 @@
 #define PID_TIMESTAMP 0
 #define PID_TRIP_DISTANCE 0x30
 #define PID_DATA_SIZE 0x80
-#define PID_CSQ 0x81
+#define PID_RSSI 0x81
 #define PID_DEVICE_TEMP 0x82
 #define PID_DEVICE_HALL 0x83
 #define PID_EXT_SENSOR1 0x90

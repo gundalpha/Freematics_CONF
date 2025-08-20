@@ -1,12 +1,13 @@
 CC=gcc
 CFLAGS=-O3 -Wunused-result
-HEADERS = httpint.h httpapi.h
+HEADERS = httpint.h httpapi.h obd_db.h
 TARGET = teleserver
 OBJS += teleserver.o udpserver.o teletrips.o telebroker.o data2kml.o processpil.o httpd/httppil.o httpd/httpd.o cJSON/cJSON.o cJSON/cJSON_Utils.o libb64/cdecode.o libb64/cencode.o jsonconfig.o
+OBJS += obd_db.o
 
-CFLAGS+=-DMAX_CHANNELS=16
-CFLAGS+=-Ihttpd -Ilibb64 -IcJSON
-LDFLAGS = -lm
+CFLAGS+=-DMAX_CHANNELS=16 -DPOSTGRES_DB
+CFLAGS+=-Ihttpd -Ilibb64 -IcJSON -I'C:\\Program\ Files\\PostgreSQL\\17\\include'
+LDFLAGS = -lm -L'C:\\Program\ Files\\PostgreSQL\\17\\lib' -lpgport -lpgcommon -lpq
 
 ifdef WINDIR
 CFLAGS+= -DWIN32

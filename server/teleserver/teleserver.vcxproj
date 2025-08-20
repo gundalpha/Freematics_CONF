@@ -116,17 +116,17 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;HTTP_DEBUG;_CRT_SECURE_NO_DEPRECATE;ENABLE_THREAD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;HTTP_DEBUG;_CRT_SECURE_NO_DEPRECATE;ENABLE_THREAD;%(PreprocessorDefinitions);POSTGRES_DB</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>httpd;cJSON;libb64</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>httpd;cJSON;libb64;C:\Program Files\PostgreSQL\17\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WSock32.Lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WSock32.Lib;%(AdditionalDependencies);libpq.lib;libecpg.lib;postgres.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -136,6 +136,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalLibraryDirectories>C:\Program Files\PostgreSQL\17\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>del $(TargetPath)</Command>
@@ -216,6 +217,7 @@
     <ClCompile Include="httpd\httppil.c" />
     <ClCompile Include="libb64\cdecode.c" />
     <ClCompile Include="libb64\cencode.c" />
+    <ClCompile Include="obd_db.c" />
     <ClCompile Include="processpil.c" />
     <ClCompile Include="jsonconfig.c" />
     <ClCompile Include="telebroker.c" />
@@ -232,6 +234,7 @@
     <ClInclude Include="httpd\httppil.h" />
     <ClInclude Include="libb64\cdecode.h" />
     <ClInclude Include="logdata.h" />
+    <ClInclude Include="obd_db.h" />
     <ClInclude Include="processpil.h" />
     <ClInclude Include="revision.h" />
     <ClInclude Include="teleserver.h" />

@@ -763,7 +763,7 @@ void process()
 
   if (rssi != rssiLast) {
     int val = (rssiLast = rssi);
-    buffer->add(PID_CSQ, ELEMENT_INT32, &val, sizeof(val));
+    buffer->add(PID_RSSI, ELEMENT_INT32, &val, sizeof(val));
   }
 #if ENABLE_OBD
   if (sys.devType > 12) {
@@ -854,6 +854,7 @@ void process()
     return;
   }
  */ //Confitech
+ dataInterval = dataIntervals[0];
 #else
   dataInterval = dataIntervals[0];
 #endif

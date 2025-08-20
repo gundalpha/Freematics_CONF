@@ -145,3 +145,4 @@ uint32_t issueCommand(HttpParam* hp, CHANNEL_DATA *pld, const char* cmd, uint32_
 int incomingUDPCallback(void* _hp);
 void deviceLogin(CHANNEL_DATA* pld);
 void deviceLogout(CHANNEL_DATA* pld);
+int cavbaseInsertMaster(unsigned char gatr_scn, char* vin, char* data_gatr_expl, uint32_t ts);
