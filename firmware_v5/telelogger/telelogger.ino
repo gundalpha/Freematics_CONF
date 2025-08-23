@@ -275,10 +275,10 @@ void processOBD(CBuffer* buffer)
       byte pid = obdData[i].pid;
       obdData[i].ts = millis();
       obdData[i].value = value  ;
-      Serial.print("OBD Simulation mode");
-      Serial.print(pid);
-      Serial.print(" Value ");
-      Serial.println(value);
+      //Serial.print("OBD Simulation mode");
+      //Serial.print(pid);
+      //Serial.print(" Value ");
+      //Serial.println(value);
       buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
     } 
 #else
@@ -741,7 +741,7 @@ void process()
   {
     sendDTC(buffer);
     oldtripID = tripID;
-    //saveTripID();
+    
   }
 
 #if ENABLE_OBD
