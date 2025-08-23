@@ -354,9 +354,10 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 	char db_master[512];
 	sprintf(db_master, "%s\0", payload);
 
-	printf("-->Payload: %s\n", db_master);
+	//printf("-->Payload: %s\n", db_master);
 	data_id = InsertOBDMaster(pld, db_master);
-	printf("Return data_id =%d\n", data_id);
+	//printf("Return data_id =%d\n", data_id);
+	fprintf(pld->fp, "Return data_id =%d\n", data_id);
 #endif
 
 	char *p = payload;
@@ -393,7 +394,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 			pld->data[pid].ts = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
 #ifdef POSTGRES_DB
-			printf("\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
+			fprintf(pld->fp, "\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
 			insertPidValue(data_id, pid, value);
 #endif
 			// collect some stats
