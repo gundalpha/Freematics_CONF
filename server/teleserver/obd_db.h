@@ -9,7 +9,7 @@
 
 
 PGconn* connDb();
-//int dbInsert(CHANNEL_DATA* pld, char* payload);
 
 int InsertOBDMaster(CHANNEL_DATA* pld, char* payload);
+int insertPidValue(int data_id, int pid, char *value);
 #endif // __OBD_DB_H__

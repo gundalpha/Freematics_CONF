@@ -338,6 +338,7 @@ void deviceLogout(CHANNEL_DATA* pld)
 int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 {
 	uint16_t tmpVolt = 0;
+	int data_id = 0;
 	uint64_t tick = GetTickCount64();
 	if (eventID == 0) {
 		if (!pld->fp && (pld->flags & FLAG_RUNNING)) {
@@ -349,6 +350,14 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 			fflush(pld->fp);
 		}
 	}
+#ifdef POSTGRES_DB
+	char db_master[512];
+	sprintf(db_master, "%s\0", payload);
+
+	printf("-->Payload: %s\n", db_master);
+	data_id = InsertOBDMaster(pld, db_master);
+	printf("Return data_id =%d\n", data_id);
+#endif
 
 	char *p = payload;
 	uint32_t ts = 0;
@@ -380,9 +389,13 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		// store in table
 		int m = pid >> 8;
 		if (m < PID_MODES) {
-			//printf("M --> %d, pid = %x, value = %s\n", m, pid, value);
+			
 			pld->data[pid].ts = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
+#ifdef POSTGRES_DB
+			printf("\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
+			insertPidValue(data_id, pid, value);
+#endif
 			// collect some stats
 			switch (pid) {
 			case PID_RSSI: /* signal strength */
@@ -419,7 +432,6 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				pld->deviceTemp = atoi(value);
 				printf("deviceTemp --> %d\n", pld->deviceTemp);
 				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
-				InsertOBDMaster(pld, payload);
 				break;
 			}
 		}
@@ -466,7 +478,6 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 	}
 
 	pld->recvCount++;
-
 	printf("[%u] #%u %u bytes | Samples:%u | Device Tick:%u\n", pld->id, pld->recvCount, pld->dataReceived, count, pld->deviceTick);
 	return count;
 }

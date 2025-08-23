@@ -8,8 +8,8 @@ PGconn* conn;
 
 PGconn* connDb()
 {
-	//const char* conninfo = "host='125.141.31.131' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
-	const char* conninfo = "host='127.0.0.1' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
+	const char* conninfo = "host='125.141.31.131' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
+	//const char* conninfo = "host='127.0.0.1' user='kiapicav' port=5432 dbname='kiapi_cav' password='kiapi5005!@#' ";
 	/* 연결 열기 */
 	conn = PQconnectdb(conninfo);
 	if (PQstatus(conn) != CONNECTION_OK) {
@@ -17,33 +17,47 @@ PGconn* connDb()
 		PQfinish(conn);
 		return conn;
 	}
+	printf("Postgresql connection success...\n");
 	return conn;
 }
 
-int InsertMaster(unsigned char gatr_scn, char* vin, char* payload, uint32_t ts)
+//int InsertPidValue(uint16_t data_id, uint16_t pid, char* value)
+int insertPidValue(int data_id, int pid, char* value)
 {
 	PGresult* res;
+	//printf("%s: data_id:%d, PID:0x%x(%d), Value: %s\n", __FUNCTION__, data_id, pid, pid, value);
 	if (!conn)
 	{
-		char sql[256];
-		conn=connDb();
-		sprintf(sql, "insert into tbl_obd_data_master(gatr_scn, vin, data_gatr_expl, rgst_dtm) values (%d, '%s', '%s', %ld);", 
-			gatr_scn, vin, payload, ts);
-		printf("SQL: %s]n", sql);
-		/* 쿼리문 실행 */
-		res = PQexec(conn, sql);
-		if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-			fprintf(stderr,"Query failed : %s", PQerrorMessage(conn));
-			PQclear(res);
+		conn = connDb();
+		// 연결 상태 확인
+		if (PQstatus(conn) == CONNECTION_BAD) {
+			fprintf(stderr, "데이터베이스 연결 실패: %s\n", PQerrorMessage(conn));
 			PQfinish(conn);
 			return -1;
 		}
-		return 0;
+		else
+		{
+			;
+			//printf("Postgresql make connection...\n");
+		}
+	}
+	char sql[256];
+	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_data, rgst_dtm) "
+		" VALUES(%d , '%s', %d , '%x' , '%s' , CURRENT_TIMESTAMP); ", 
+		data_id, "1", pid, pid,  value);
+		
+	//printf("==> SQL: %s\n", sql);
+	/* 쿼리문 실행 */
+	res = PQexec(conn, sql);
+	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+		fprintf(stderr,"Query failed : %s", PQerrorMessage(conn));
+		PQclear(res);
+		return -1;
 	}
 	else
 	{
-		fprintf(stderr, "Please check the DB connection\n");
-		return -1;
+		//printf("PID insert succesful\n");
+		return 0;
 	}
 }
 
@@ -53,19 +67,40 @@ int InsertOBDMaster(CHANNEL_DATA* pld, char* payload)
 	if (!conn)
 	{
 		conn = connDb();
-		char sql[512];
-		sprintf(sql, "INSERT INTO cavbase.tbl_obd_data_master(data_id, gatr_scn, vin, data_gatr_expl, rgst_dtm) values (%d, %s, %s, %s, current_timestamp );",
-			pld->tripId, "1", pld->vin, payload);
-		printf("QSQL : %s\n", sql);
-		
-		/* 쿼리문 실행 */
-		res = PQexec(conn, sql);
-		if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-			fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
-			PQclear(res);
+		// 연결 상태 확인
+		if (PQstatus(conn) == CONNECTION_BAD) {
+			fprintf(stderr, "데이터베이스 연결 실패: %s\n", PQerrorMessage(conn));
 			PQfinish(conn);
 			return -1;
 		}
-		return 0;		
+		else
+		{
+			;
+			//printf("Postgresql make connection...\n");
+		}
 	}
+	char sql[512];
+	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data_master(data_id, gatr_scn, vin, data_gatr_expl, rgst_dtm)"
+		" values ( nextval('cavbase.seq_obd_data_mst_id'::regclass), '%s', '%s', '%s', current_timestamp )  RETURNING data_id ;",
+		"1", pld->vin, payload);
+	//printf("QSQL : %s\n", sql);
+		
+	/* 쿼리문 실행 */
+	res = PQexec(conn, sql);
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
+		PQclear(res);
+		return -1;
+	}
+	else
+	{
+		//printf("Add new raw completed...");
+		
+		/* 쿼리문 실행 */
+		char *data_id = PQgetvalue(res, 0, 0);
+		printf("Inserted data_id=%s\n", data_id);
+		
+		return atoi(data_id);
+	}
+	
 }
