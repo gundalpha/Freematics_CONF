@@ -14,7 +14,7 @@
 #include "logdata.h"
 #include "data2kml.h"
 
-uint16_t hex2uint16(const char *p);
+
 int ishex(char c);
 
 void WriteKMLData(KML_DATA* kd, uint32_t timestamp, uint16_t pid, float value[])

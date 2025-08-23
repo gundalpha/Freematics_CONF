@@ -12,10 +12,26 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 ******************************************************************************/
-
+#ifndef __TELESERVER_H__
+#define __TELESERVER_H__
 #ifndef MAX_CHANNELS
 #define MAX_CHANNELS 16
 #endif
+
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <ctype.h>
+#include <errno.h>
+#include <sys/stat.h>
+
+#include "data2kml.h"
+#include "httpd.h"
+#include "logdata.h"
+#include "processpil.h"
+#include "revision.h"
 
 #define META_REVISION 1
 
@@ -138,7 +154,7 @@ CHANNEL_DATA* findChannelByDeviceID(const char* devid);
 void SaveChannels();
 FILE* getLogFile();
 uint8_t hex2uint8(const char *p);
-int hex2uint16(const char *p);
+uint16_t hex2uint16(const char *p);
 int checkVIN(const char* vin);
 int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID);
 uint32_t issueCommand(HttpParam* hp, CHANNEL_DATA *pld, const char* cmd, uint32_t token);
@@ -146,3 +162,5 @@ int incomingUDPCallback(void* _hp);
 void deviceLogin(CHANNEL_DATA* pld);
 void deviceLogout(CHANNEL_DATA* pld);
 int cavbaseInsertMaster(unsigned char gatr_scn, char* vin, char* data_gatr_expl, uint32_t ts);
+
+#endif

@@ -8,7 +8,8 @@ PGconn* conn;
 
 PGconn* connDb()
 {
-	const char* conninfo = "host=localhost dbname=kiapi_db user=kiapicav password='confi11' ";
+	//const char* conninfo = "host='125.141.31.131' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
+	const char* conninfo = "host='127.0.0.1' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
 	/* 연결 열기 */
 	conn = PQconnectdb(conninfo);
 	if (PQstatus(conn) != CONNECTION_OK) {
@@ -43,5 +44,28 @@ int InsertMaster(unsigned char gatr_scn, char* vin, char* payload, uint32_t ts)
 	{
 		fprintf(stderr, "Please check the DB connection\n");
 		return -1;
+	}
+}
+
+int InsertOBDMaster(CHANNEL_DATA* pld, char* payload)
+{
+	PGresult* res;
+	if (!conn)
+	{
+		conn = connDb();
+		char sql[512];
+		sprintf(sql, "INSERT INTO cavbase.tbl_obd_data_master(data_id, gatr_scn, vin, data_gatr_expl, rgst_dtm) values (%d, %s, %s, %s, current_timestamp );",
+			pld->tripId, "1", pld->vin, payload);
+		printf("QSQL : %s\n", sql);
+		
+		/* 쿼리문 실행 */
+		res = PQexec(conn, sql);
+		if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+			fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
+			PQclear(res);
+			PQfinish(conn);
+			return -1;
+		}
+		return 0;		
 	}
 }

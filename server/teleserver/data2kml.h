@@ -3,8 +3,24 @@
 * Distributed under GPL v3.0 license
 * (c)2013 Written by Stanley Huang
 *************************************************************************/
+#ifndef __DATA2KML_H__
+#define __DATA2KML_H__
 
-typedef struct {
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <ctype.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include "teleserver.h"
+#include "httpd.h"
+#include "logdata.h"
+#include "processpil.h"
+#include "revision.h"
+
+typedef struct  {
 	uint32_t timestamp;
 	uint32_t date;
 	uint32_t time;
@@ -48,3 +64,6 @@ typedef struct {
 	DATASET last;
 	uint32_t tsOffset;
 } KML_DATA;
+
+
+#endif

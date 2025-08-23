@@ -20,12 +20,17 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>
+
 #include "data2kml.h"
 #include "httpd.h"
 #include "teleserver.h"
 #include "logdata.h"
 #include "processpil.h"
 #include "revision.h"
+
+#ifdef POSTGRES_DB
+#include "obd_db.h"
+#endif
 
 int uhPush(UrlHandlerParam* param);
 int uhPull(UrlHandlerParam* param);
@@ -106,7 +111,7 @@ uint8_t hex2uint8(const char *p)
 	return c1 << 4 | (c2 & 0xf);
 }
 
-int hex2uint16(const char *p)
+uint16_t hex2uint16(const char *p)
 {
 	char c = *p;
 	uint16_t i = 0;
@@ -385,16 +390,11 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				printf("rssi --> %d\t", pld->rssi);
 				fprintf(pld->fp, "rssi --> %d\t", pld->rssi);
 				break;
-			case PID_DEVICE_TEMP:
-				pld->deviceTemp = atoi(value);
-				printf("deviceTemp --> %d\n", pld->deviceTemp);
-				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
-				break;
 			case PID_VIN_ID:
 				memcpy(&pld->vin, value, strlen(value) - 1);
 				printf("VIN --> %s\t", pld->vin);
 				fprintf(pld->fp, "VIN --> %s\t", pld->vin);
-				InsertMaster(gatr_scn, pld->vin, payload, ts);
+				//InsertMaster(gatr_scn, pld->vin, payload, ts);
 				break;
 			case PID_TRIP_ID:
 				pld->tripId = atoi(value);
@@ -414,6 +414,12 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				sscanf(value, "%f;%f;%f", &pld->mems_acc[0], &pld->mems_acc[1], &pld->mems_acc[2]);
 				printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
 				fprintf(pld->fp, "mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
+				break;
+			case PID_DEVICE_TEMP:
+				pld->deviceTemp = atoi(value);
+				printf("deviceTemp --> %d\n", pld->deviceTemp);
+				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
+				InsertOBDMaster(pld, payload);
 				break;
 			}
 		}
@@ -1187,7 +1193,7 @@ int main(int argc,char* argv[])
 	httpParam.maxClients = 256;
 	httpParam.maxClientsPerIP = 16;
 	httpParam.httpPort = 8080;
-	httpParam.udpPort = 33000;
+	httpParam.udpPort = 33000; // 33000 to OBD Device
 	httpParam.pxUrlHandler = urlHandlerList;
 	httpParam.hlBindIP = htonl(INADDR_ANY);
 	httpParam.pfnIncomingUDP = incomingUDPCallback;
@@ -1281,7 +1287,10 @@ int main(int argc,char* argv[])
 
 	memset(ld, 0, sizeof(ld));
 	LoadChannels();
-
+#ifdef POSTGRES_DB
+	connDb();
+	printf("PostgresDB Connection...\n");
+#endif
 	if (mwServerStart(&httpParam)) {
 		printf("Error starting HTTP server on port %u\nPress ENTER to exit\n", httpParam.httpPort);
 		return -1;
