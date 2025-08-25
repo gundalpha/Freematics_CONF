@@ -72,6 +72,8 @@ typedef enum {
 	EVENT_COMMAND,
 	EVENT_ACK,
 	EVENT_PING,
+	EVENT_PID,
+	EVENT_DTC,
 } DEVICE_EVENT;
 #endif
 
@@ -147,6 +149,16 @@ typedef struct {
 	// handles
 	FILE* fp;
 } CHANNEL_DATA;
+
+#ifdef POSTGRES_DB
+typedef struct _postgresParam {
+	char* serverIP;
+	int serverPort;
+	char* loginID;
+	char* loginPass;
+	char* dbName;
+} PostgresParam;
+#endif //POSTGRES_DB
 
 CHANNEL_DATA* findEmptyChannel();
 CHANNEL_DATA* findChannelByID(uint32_t id);

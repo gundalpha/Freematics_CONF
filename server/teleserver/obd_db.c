@@ -1,21 +1,30 @@
 #include "obd_db.h"
+#include "teleserver.h"
 
 #ifdef POSTGRES_DB
 #include <libpq-fe.h>
 PGconn* conn;
 #endif  //POSTGRES_DB
 
-
+extern PostgresParam postgresParam;
 PGconn* connDb()
 {
-	const char* conninfo = "host='125.141.31.131' user='kiapicav' port=55432 dbname='kiapi_cav' password='kiapi5005!@#' ";
+	char conninfo[256];
+	printf(" host : %s, port = %d, id = %s, pass = %s, name = %s\n", 
+		postgresParam.serverIP, postgresParam.serverPort, postgresParam.loginID,
+		postgresParam.loginPass, postgresParam.dbName);
+	sprintf(conninfo, "host='%s' port=%d user='%s'  password='%s' dbname='%s' ",
+		postgresParam.serverIP, postgresParam.serverPort, postgresParam.loginID,
+		postgresParam.loginPass, postgresParam.dbName);
 	//const char* conninfo = "host='127.0.0.1' user='kiapicav' port=5432 dbname='kiapi_cav' password='kiapi5005!@#' ";
 	/* 연결 열기 */
+	printf("DB Conn -> %s\n", conninfo);
+
 	conn = PQconnectdb(conninfo);
 	if (PQstatus(conn) != CONNECTION_OK) {
 		fprintf(stderr, "Connection to database failed : % s", PQerrorMessage(conn));
 		PQfinish(conn);
-		return conn;
+		return -1;
 	}
 	printf("Postgresql connection success...\n");
 	return conn;

@@ -76,6 +76,9 @@ AuthHandler authHandlerList[]={
 };
 
 HttpParam httpParam;
+#ifdef POSTGRES_DB
+PostgresParam postgresParam;
+#endif
 
 char dataDir[256] = "data";
 char logDir[256] = "log";
@@ -388,8 +391,8 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		}
 		
 		// store in table
-		int m = pid >> 8;
-		if (m < PID_MODES) {
+		//int m = pid >> 8;
+		//if (m < PID_MODES) {
 			
 			pld->data[pid].ts = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
@@ -435,7 +438,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
 				break;
 			}
-		}
+		//}
 		
 		count++;
 		// store in cache
@@ -1188,7 +1191,8 @@ int genHttpPostPayload(CHANNEL_DATA* pld);
 
 int main(int argc,char* argv[])
 {
-	fprintf(stderr, "Freematics Hub Version %s (built on %s)\n(C)2016-2020 Mediatronic Pty Ltd / Developed by Stanley Huang\nThis is free software and is distributed under GPL v3.0\n\n", REVISION, __DATE__);
+	printf("Starting Kiapi OBD Server\n");
+	fprintf(stderr, "Kiapi Collection Version %s (built on %s)\n This is modified SW by Confitech as the free software and is distributed under GPL v3.0\n\n", REVISION, __DATE__);
 
 #ifdef WIN32
 	SetConsoleCtrlHandler( (PHANDLER_ROUTINE) ServerQuit, TRUE );
@@ -1210,11 +1214,22 @@ int main(int argc,char* argv[])
 	httpParam.hlBindIP = htonl(INADDR_ANY);
 	httpParam.pfnIncomingUDP = incomingUDPCallback;
 	httpParam.pfnProxyData = phData;
+#ifdef POSTGRES_DB
+	postgresParam.serverIP = "125.141.31.131";
+	postgresParam.serverPort = 55432;
+	postgresParam.loginID = "kiapicav";
+	postgresParam.loginPass = "kiapi5005!@#";
+	postgresParam.dbName = "kiapi_cav";
+	printf(" host : %s, port = %d, id = %s, pass = %s, name = %s\n",
+		postgresParam.serverIP, postgresParam.serverPort, postgresParam.loginID,
+		postgresParam.loginPass, postgresParam.dbName);
+
+#endif
 
 #ifdef WIN32
 	char dir[240];
 	if (GetEnvironmentVariable("APPDATA", dir, sizeof(dir))) {
-		strcat(dir, "/FreematicsHub");
+		strcat(dir, "/Kiapi");
 		if (IsDir(dir)) {
 			if (!IsDir(dataDir))
 				snprintf(dataDir, sizeof(dataDir), "%s/Data", dir);
@@ -1243,10 +1258,34 @@ int main(int argc,char* argv[])
 						"	-M	: specifiy max clients per IP\n"
 						"	-n	: specifiy HTTP authentication user name for remote access [default: admin]\n"
 						"	-w	: specifiy HTTP authentication password for remote access\n"
+#ifdef POSTGRES_DB
+						"	-s	: specifiy Postgres Server IP\n"
+						"	-q	: specifiy Postgres Server Port\n"
+						"	-i	: specifiy Postgres Login ID\n"
+						"	-x	: specifiy Postgres Login Password\n"
+						"	-z	: specifiy Postgres DB Name\n"
+#endif
 						"	-g	: do not launch GUI\n\n");
 					fflush(stderr);
 					exit(1);
 					break;
+#ifdef POSTGRES_DB
+				case 's':
+					if ((++i) < argc) postgresParam.serverIP = argv[i];
+					break;
+				case 'q':
+					if ((++i) < argc) postgresParam.serverPort = atoi(argv[i]);
+					break;
+				case 'i':
+					if ((++i) < argc) postgresParam.loginID = argv[i];
+					break;
+				case 'x':
+					if ((++i) < argc) postgresParam.loginPass = argv[i];
+					break;
+				case 'z':
+					if ((++i) < argc) postgresParam.dbName = argv[i];
+					break;
+#endif
 				case 'p':
 					if ((++i)<argc) httpParam.httpPort=atoi(argv[i]);
 					break;
@@ -1300,7 +1339,10 @@ int main(int argc,char* argv[])
 	memset(ld, 0, sizeof(ld));
 	LoadChannels();
 #ifdef POSTGRES_DB
-	connDb();
+	if (connDb() == -1) {
+		printf("Please check DB Server and Configuration\n");
+		return -1;
+	}
 	printf("PostgresDB Connection...\n");
 #endif
 	if (mwServerStart(&httpParam)) {

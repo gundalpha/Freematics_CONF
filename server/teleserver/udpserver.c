@@ -199,6 +199,15 @@ int incomingUDPCallback(void* _hp)
 			// clear instance data cache
 			memset(pld->data, 0, sizeof(pld->data));
 		}
+		else if (eventID == EVENT_PID)//PID 변경 명령
+		{
+
+		}
+		else if (eventID == EVENT_DTC) // DTC 처리 명령
+		{
+
+		}
+
 	}
 	if (!pld) {
 		fprintf(stderr, "INVALID CHANNEL - %s\n", buf);
