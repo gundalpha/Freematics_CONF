@@ -6,8 +6,8 @@ OBJS += teleserver.o udpserver.o teletrips.o telebroker.o data2kml.o processpil.
 OBJS += obd_db.o
 
 CFLAGS+=-DMAX_CHANNELS=16 -DPOSTGRES_DB
-CFLAGS+=-Ihttpd -Ilibb64 -IcJSON -I'C:\\Program\ Files\\PostgreSQL\\17\\include'
-LDFLAGS = -lm -L'C:\\Program\ Files\\PostgreSQL\\17\\lib' -lpgport -lpgcommon -lpq
+CFLAGS+=-Ihttpd -Ilibb64 -IcJSON -I/usr/include/postgresql -I'C:\\Program\ Files\\PostgreSQL\\17\\include'
+LDFLAGS = -lm -L/usr/lib/postgresql/16/lib -L'C:\\Program\ Files\\PostgreSQL\\17\\lib' -lpgport -lpgcommon -lpq
 
 ifdef WINDIR
 CFLAGS+= -DWIN32

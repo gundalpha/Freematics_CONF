@@ -1169,6 +1169,9 @@ int ServerQuit(int arg) {
 	if (quitting) return 0;
 	quitting = 1;
 	if (arg) printf("\nCaught signal (%d). Shutting down...\n",arg);
+#ifdef POSTGRES_DB
+	dbClose();
+#endif
 	mwServerShutdown(&httpParam);
 	SaveChannels();
 	return 0;
@@ -1260,7 +1263,7 @@ int main(int argc,char* argv[])
 						"	-w	: specifiy HTTP authentication password for remote access\n"
 #ifdef POSTGRES_DB
 						"	-s	: specifiy Postgres Server IP\n"
-						"	-q	: specifiy Postgres Server Port\n"
+						"	-t	: specifiy Postgres Server Port\n"
 						"	-i	: specifiy Postgres Login ID\n"
 						"	-x	: specifiy Postgres Login Password\n"
 						"	-z	: specifiy Postgres DB Name\n"
@@ -1273,7 +1276,7 @@ int main(int argc,char* argv[])
 				case 's':
 					if ((++i) < argc) postgresParam.serverIP = argv[i];
 					break;
-				case 'q':
+				case 't':
 					if ((++i) < argc) postgresParam.serverPort = atoi(argv[i]);
 					break;
 				case 'i':

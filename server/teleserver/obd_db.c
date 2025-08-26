@@ -22,12 +22,18 @@ PGconn* connDb()
 
 	conn = PQconnectdb(conninfo);
 	if (PQstatus(conn) != CONNECTION_OK) {
-		fprintf(stderr, "Connection to database failed : % s", PQerrorMessage(conn));
+		fprintf(stderr, "Connection to database failed : %s", PQerrorMessage(conn));
 		PQfinish(conn);
-		return -1;
+		return (PGconn*)-1 ;
 	}
 	printf("Postgresql connection success...\n");
 	return conn;
+}
+
+void dbClose()
+{
+	// ¿¿ ¿¿
+    PQfinish(conn);
 }
 
 //int InsertPidValue(uint16_t data_id, uint16_t pid, char* value)
