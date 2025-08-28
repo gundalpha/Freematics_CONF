@@ -1223,10 +1223,10 @@ int main(int argc,char* argv[])
 	postgresParam.loginID = "kiapicav";
 	postgresParam.loginPass = "kiapi5005!@#";
 	postgresParam.dbName = "kiapi_cav";
-	printf(" host : %s, port = %d, id = %s, pass = %s, name = %s\n",
+	/*printf("Default DB host : %s, port = %d, id = %s, pass = %s, name = %s\n",
 		postgresParam.serverIP, postgresParam.serverPort, postgresParam.loginID,
 		postgresParam.loginPass, postgresParam.dbName);
-
+	*/
 #endif
 
 #ifdef WIN32
