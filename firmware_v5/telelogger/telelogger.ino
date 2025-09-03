@@ -64,17 +64,17 @@ PID_POLLING_INFO obdData[]= {
   {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
   {PID_RUNTIME,  1}, // Driving Time
   {PID_DISTANCE, 1}, // Driving Distance
-  {PID_MAF_FLOW, 2},  // MAF to Fuel Consumption (per Second)
+  {PID_MAF_FLOW, 1},  // MAF to Fuel Consumption (per Second)
   {PID_FUEL_LEVEL, 2},   // Fuel Level  --> Average Fuel Level
   {PID_COOLANT_TEMP,2}, //Coolant Temp
   {PID_RPM, 2},         // RPM
   {PID_ENGINE_OIL_TEMP, 2}, // Engine Oil Temp.
-  {PID_ENGINE_LOAD, 3},
+  {PID_ENGINE_LOAD, 2},
   {PID_HYBRID_BATTERY_PERCENTAGE, 3},
   {PID_AUX_BATTERY, 3},
   {PID_FUEL_TYPE, 3},
   {PID_GEAR, 3},        // Is this pid for gear position ? let's check
-  //{PID_ODOMETER, 4},    // ODO Meter(4자리)
+  {PID_ODOMETER, 3},    // ODO Meter(4자리)
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},
