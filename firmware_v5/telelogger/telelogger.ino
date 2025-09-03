@@ -59,20 +59,22 @@ typedef struct {
 } PID_POLLING_INFO;
 
 PID_POLLING_INFO obdData[]= {
+  {0,1},
+  //{32,1},
   {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
-  {PID_RUNTIME,  2}, // Driving Time
-  {PID_DISTANCE, 2}, // Driving Distance
+  {PID_RUNTIME,  1}, // Driving Time
+  {PID_DISTANCE, 1}, // Driving Distance
   {PID_MAF_FLOW, 2},  // MAF to Fuel Consumption (per Second)
-  {PID_FUEL_LEVEL, 1},   // Fuel Level  --> Average Fuel Level
-  {PID_COOLANT_TEMP, 3}, //Coolant Temp
-  {PID_RPM, 1},         // RPM
-  {PID_ODOMETER, 4},    // ODO Meter(4자리)
-  {PID_ENGINE_OIL_TEMP, 1}, // Engine Oil Temp.
-  {PID_ENGINE_LOAD, 1},
+  {PID_FUEL_LEVEL, 2},   // Fuel Level  --> Average Fuel Level
+  {PID_COOLANT_TEMP,2}, //Coolant Temp
+  {PID_RPM, 2},         // RPM
+  {PID_ENGINE_OIL_TEMP, 2}, // Engine Oil Temp.
+  {PID_ENGINE_LOAD, 3},
+  {PID_HYBRID_BATTERY_PERCENTAGE, 3},
+  {PID_AUX_BATTERY, 3},
+  {PID_FUEL_TYPE, 3},
   {PID_GEAR, 3},        // Is this pid for gear position ? let's check
-  {PID_HYBRID_BATTERY_PERCENTAGE, 1},
-  {PID_AUX_BATTERY, 1},
-  {PID_FUEL_TYPE, 1},
+  //{PID_ODOMETER, 4},    // ODO Meter(4자리)
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},
@@ -262,26 +264,25 @@ void processOBD(CBuffer* buffer)
   int tier = 1;
   
   Serial.print("Total OBD Data ");
-  Serial.println(sizeof(obdData));
+  Serial.print(sizeof(obdData));
   Serial.print(" Count ");
   Serial.println(sizeof(obdData)/sizeof(obdData[0]));
+
   for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
-    
-
-#ifdef OBD_SIMULATION
+/*#if defined(OBD_SIMULATION==1)
     {
-
       int value = i;
       byte pid = obdData[i].pid;
       obdData[i].ts = millis();
       obdData[i].value = value  ;
-      //Serial.print("OBD Simulation mode");
+      Serial.print("OBD Simulation mode");
       //Serial.print(pid);
       //Serial.print(" Value ");
       //Serial.println(value);
       buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
     } 
-#else
+#else*/
+    
     if (obdData[i].tier > tier) {
       // reset previous tier index
       idx[tier - 2] = 0;
@@ -296,30 +297,41 @@ void processOBD(CBuffer* buffer)
           continue;
       }
     }
+    
+    Serial.print(i);
+   	Serial.println("th OBD ");
     {
-      byte pid = obdData[i].pid;
+      uint16_t pid = obdData[i].pid;
+      //byte pid = obdData[i].pid;
       if (!obd.isValidPID(pid)) 
       {
+		    Serial.println("OBD not valid");
         continue;
       }
+      
       int value;
       if (obd.readPID(pid, value)) {
-          obdData[i].ts = millis();
-          obdData[i].value = value;
-          buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
+        Serial.print(" read ");
+        Serial.print(pid);
+        Serial.print(" values: ");
+        Serial.println(value);
+              
+        obdData[i].ts = millis();
+        obdData[i].value = value;
+        buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
       } else {
           timeoutsOBD++;
           printTimeoutStats();
-          break;
+          //break;
       }
     }
-    if (tier > 1) break;
-    #endif
+    //if (tier > 1) break;
+//#endif //OBD_SIMULATION
   }
   int kph = obdData[0].value;
   if (kph >= 2) lastMotionTime = millis();
 }
-#endif
+#endif //EBABLE_OBD
 
 bool initGPS()
 {
@@ -758,7 +770,12 @@ void process()
   } else if (obd.init(PROTO_AUTO, true)) {
     state.set(STATE_OBD_READY);
     Serial.println("[OBD] ECU ON");
+  } 
+  // For test
+  else{
+    processOBD(buffer);
   }
+  // For test
 #endif
 
   if (rssi != rssiLast) {

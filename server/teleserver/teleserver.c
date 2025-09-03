@@ -404,7 +404,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 			switch (pid) {
 			case PID_RSSI: /* signal strength */
 				pld->rssi = atoi(value);
-				printf("rssi --> %d\t", pld->rssi);
+				//printf("rssi --> %d\t", pld->rssi);
 				fprintf(pld->fp, "rssi --> %d\t", pld->rssi);
 				break;
 			case PID_VIN_ID:
@@ -415,7 +415,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				break;
 			case PID_TRIP_ID:
 				pld->tripId = atoi(value);
-				printf("tripId --> %d\t", pld->tripId);
+				//printf("tripId --> %d\t", pld->tripId);
 				fprintf(pld->fp, "tripId --> %d\t", pld->tripId);
 				break;
 
@@ -423,10 +423,20 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				tmpVolt = 0;
 				tmpVolt = atoi(value);
 				pld->voltage = tmpVolt / 100;
-				printf("voltage --> %f\t", pld->voltage);
+				//printf("voltage --> %f\t", pld->voltage);
 				fprintf(pld->fp, "voltage --> %f\t", pld->voltage);
-				
 				break;
+			case PID_GPS_LATITUDE:
+			case PID_GPS_LONGITUDE:
+			case PID_GPS_ALTITUDE:
+			case PID_GPS_SPEED:
+			case PID_GPS_HEADING:
+			case PID_GPS_SAT_COUNT:
+			case PID_GPS_TIME:
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				break;
+				
 			case PID_ACC:
 				sscanf(value, "%f;%f;%f", &pld->mems_acc[0], &pld->mems_acc[1], &pld->mems_acc[2]);
 				printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);

@@ -76,10 +76,6 @@
 #define ENABLE_OBD 1
 #endif
 
-#ifndef OBD_SIMULATION
-#define OBD_SIMULATION 0
-#endif
-
 
 // maximum consecutive OBD access errors before entering standby
 #define MAX_OBD_ERRORS 3
