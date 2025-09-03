@@ -11,6 +11,6 @@
 PGconn* connDb();
 
 int InsertOBDMaster(CHANNEL_DATA* pld, char* payload);
-int insertPidValue(int data_id, int pid, char *value);
+int insertPidValue(int data_id, int pid, int iVal, float fVal, char *value);
 void dbClose();
 #endif // __OBD_DB_H__

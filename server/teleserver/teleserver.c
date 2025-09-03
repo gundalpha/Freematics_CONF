@@ -369,6 +369,9 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 	unsigned char gatr_scn = 1; // 1: OBD-Auto, 2: Special OBD
 	do {
 		int pid = hex2uint16(p);
+		int iVal = 0;
+		float fVal = 0.0;
+
 		if (pid == -1) {
 			p = strchr(p, ',');
 			if (p) *(p++) = 0;
@@ -398,54 +401,159 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 			memcpy(pld->data[pid].value, value, len + 1);
 #ifdef POSTGRES_DB
 			fprintf(pld->fp, "\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
-			insertPidValue(data_id, pid, value);
+			
 #endif
+			iVal = atoi(value);
 			// collect some stats
 			switch (pid) {
+			case PID_SPEED:
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_RUNTIME:
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_DISTANCE:
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_MAF_FLOW:
+				fVal = (float)iVal/100;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_FUEL_LEVEL:
+				fVal = (float)iVal*100/255;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_COOLANT_TEMP:
+				iVal = iVal - 40;
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_RPM:
+				fVal = (float)iVal / 4;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_ENGINE_OIL_TEMP:
+				iVal = iVal - 40;
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_ENGINE_LOAD:
+				fVal = (float)iVal * 100 / 255;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_HYBRID_BATTERY_PERCENTAGE:
+				fVal = (float)iVal * 100 / 255;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_AUX_BATTERY:
+				fVal = (float)iVal;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_FUEL_TYPE:
+				if (iVal == 0) value = "NA";
+				else if (iVal == 1) value = "Gasoline";
+				else if (iVal == 4) value = "Diesel";
+				else if (iVal == 5) value = "LPG";
+				else if (iVal == 8) value = "Electric";
+				else if (iVal == 17) value = "Hybrid Gasoline";
+				else if (iVal == 19) value = "Hybrid Diesel";
+				else if (iVal == 20) value = "Hybrid Electric";
+				else if (iVal == 22) value = "Hybrid Regenerative";
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_GEAR:
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
+			case PID_ODOMETER:
+				fVal = iVal / 10;
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_RSSI: /* signal strength */
 				pld->rssi = atoi(value);
 				//printf("rssi --> %d\t", pld->rssi);
 				fprintf(pld->fp, "rssi --> %d\t", pld->rssi);
+				iVal = pld->rssi;
+				fVal = (float)pld->rssi;
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
 			case PID_VIN_ID:
 				memcpy(&pld->vin, value, strlen(value) - 1);
 				printf("VIN --> %s\t", pld->vin);
 				fprintf(pld->fp, "VIN --> %s\t", pld->vin);
 				//InsertMaster(gatr_scn, pld->vin, payload, ts);
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
 			case PID_TRIP_ID:
 				pld->tripId = atoi(value);
 				//printf("tripId --> %d\t", pld->tripId);
 				fprintf(pld->fp, "tripId --> %d\t", pld->tripId);
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
 
 			case PID_BATTERY_VOLTAGE: 
-				tmpVolt = 0;
-				tmpVolt = atoi(value);
-				pld->voltage = tmpVolt / 100;
+				fVal = iVal / 100;
+				pld->voltage = fVal; 
+				
 				//printf("voltage --> %f\t", pld->voltage);
 				fprintf(pld->fp, "voltage --> %f\t", pld->voltage);
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
 			case PID_GPS_LATITUDE:
+				fVal = atof(value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_LONGITUDE:
+				fVal = atof(value);
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_ALTITUDE:
+				fVal = atof(value);
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_SPEED:
+				fVal = atof(value);
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_HEADING:
+				fVal = (float)iVal;
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_SAT_COUNT:
+				fVal = (float)iVal;
+				printf("GPS[%x] --> %x\t", pid, value);
+				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
+				break;
 			case PID_GPS_TIME:
 				printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
-				
 			case PID_ACC:
 				sscanf(value, "%f;%f;%f", &pld->mems_acc[0], &pld->mems_acc[1], &pld->mems_acc[2]);
 				printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
 				fprintf(pld->fp, "mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
+				insertPidValue(data_id, pid, 0, pld->mems_acc[0], value);
+				insertPidValue(data_id, pid+1, 0, pld->mems_acc[1], value);
+				insertPidValue(data_id, pid+2, 0, pld->mems_acc[2], value);
 				break;
 			case PID_DEVICE_TEMP:
 				pld->deviceTemp = atoi(value);
 				printf("deviceTemp --> %d\n", pld->deviceTemp);
 				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
+				insertPidValue(data_id, pid, iVal, fVal, value);
 				break;
 			}
 		//}

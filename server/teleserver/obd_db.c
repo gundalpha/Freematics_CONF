@@ -37,7 +37,7 @@ void dbClose()
 }
 
 //int InsertPidValue(uint16_t data_id, uint16_t pid, char* value)
-int insertPidValue(int data_id, int pid, char* value)
+int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 {
 	PGresult* res;
 	//printf("%s: data_id:%d, PID:0x%x(%d), Value: %s\n", __FUNCTION__, data_id, pid, pid, value);
@@ -57,9 +57,9 @@ int insertPidValue(int data_id, int pid, char* value)
 		}
 	}
 	char sql[256];
-	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_data, rgst_dtm) "
-		" VALUES(%d , '%s', %d , '%x' , '%s' , CURRENT_TIMESTAMP); ", 
-		data_id, "1", pid, pid,  value);
+	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_bin_data, obd_float_data, obd_data, rgst_dtm) "
+		" VALUES(%d , '%s', %d , %x , %d, %f, '%s' , current_timestamp); ", 
+		data_id, "1", pid, pid, iVal, fVal, value);
 		
 	//printf("==> SQL: %s\n", sql);
 	/* 쿼리문 실행 */
