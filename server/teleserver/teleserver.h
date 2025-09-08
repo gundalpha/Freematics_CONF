@@ -138,7 +138,8 @@ typedef struct {
 	uint8_t unused;
 	uint8_t deviceTemp;
 	float sampleRate;
-	uint32_t tripId;
+	uint32_t trip_id;
+	uint32_t	ts;
 	float voltage;
 	float mems_acc[3];
 	char vin[20];
@@ -168,7 +169,7 @@ FILE* getLogFile();
 uint8_t hex2uint8(const char *p);
 uint16_t hex2uint16(const char *p);
 int checkVIN(const char* vin);
-int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID);
+int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int size);
 uint32_t issueCommand(HttpParam* hp, CHANNEL_DATA *pld, const char* cmd, uint32_t token);
 int incomingUDPCallback(void* _hp);
 void deviceLogin(CHANNEL_DATA* pld);

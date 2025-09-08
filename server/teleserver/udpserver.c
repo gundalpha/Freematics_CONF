@@ -82,7 +82,6 @@ int incomingUDPCallback(void* _hp)
 		fprintf(stderr, "UDP data checksum mismatch\n%s\n", buf);
 		return -1;
 	}
-
 	CHANNEL_DATA* pld = 0;
 	char *msg = 0;
 	char *data;
@@ -95,14 +94,18 @@ int incomingUDPCallback(void* _hp)
 		fprintf(stderr, "Invalid data received - %s\n", buf);
 		return -1;
 	}
-
+	
 	// parse feed ID or device ID
 	*data = 0;
 	if ((int)(data - buf) > 4) {
+		
 		devid = buf;
+		
 		pld = findChannelByDeviceID(buf);
+		
 		if (pld) {
 			devid = buf;
+			printf("devid=%d...", devid);
 		}
 	}
 	else {
@@ -121,7 +124,7 @@ int incomingUDPCallback(void* _hp)
 #endif
 	uint16_t devflags = 0;
 	int rssi = 0;
-
+	printf("...");
 	if (strstr(data, "EV=")) {
 		char* vin = 0;
 		char* key = 0;
@@ -226,7 +229,8 @@ int incomingUDPCallback(void* _hp)
 #endif
 
 	if (eventID == 0 || eventID == EVENT_PING) {
-		processPayload(data, pld, eventID);
+		//fprintf(stderr, "Processing...%d\n", recv);
+		processPayload(data, pld, eventID, recv);
 	} else if (eventID == EVENT_ACK) {
 		// pending command executed
 		if (msg) {

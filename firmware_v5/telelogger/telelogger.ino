@@ -59,8 +59,8 @@ typedef struct {
 } PID_POLLING_INFO;
 
 PID_POLLING_INFO obdData[]= {
-  {0,1},
-  //{32,1},
+  {0,1},  // support 0 ~ 1f
+  {0x20,1}, // support 20 ~ 3f
   {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
   {PID_RUNTIME,  1}, // Driving Time
   {PID_DISTANCE, 1}, // Driving Distance
@@ -269,19 +269,19 @@ void processOBD(CBuffer* buffer)
   Serial.println(sizeof(obdData)/sizeof(obdData[0]));
 
   for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
-/*#if defined(OBD_SIMULATION==1)
+#if 0 // OBD_SIMULATION
     {
       int value = i;
       byte pid = obdData[i].pid;
       obdData[i].ts = millis();
       obdData[i].value = value  ;
       Serial.print("OBD Simulation mode");
-      //Serial.print(pid);
+      //Serial.print(pid); 
       //Serial.print(" Value ");
       //Serial.println(value);
       buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
     } 
-#else*/
+#else
     
     if (obdData[i].tier > tier) {
       // reset previous tier index
@@ -326,7 +326,7 @@ void processOBD(CBuffer* buffer)
       }
     }
     //if (tier > 1) break;
-//#endif //OBD_SIMULATION
+#endif //OBD_SIMULATION
   }
   int kph = obdData[0].value;
   if (kph >= 2) lastMotionTime = millis();
@@ -741,12 +741,12 @@ void process()
   CBuffer* buffer = bufman.getFree();
   buffer->state = BUFFER_STATE_FILLING;
 
+  // Confitech add new Trip ID, 0x30
+  buffer->add(PID_TRIP_ID, ELEMENT_INT32, &tripID, sizeof(tripID));
   // Confitech add new 0x20, VIN ID
   Serial.print("Sending VIN :");
   Serial.println(vin);
   buffer->add(PID_VIN_ID, ELEMENT_CHAR, &vin, 18);
-// Confitech add new Trip ID, 0x30
-  buffer->add(PID_TRIP_ID, ELEMENT_INT32, &tripID, sizeof(tripID));
   
   //Send DTC Code First time
   if(dtcCount > 0 && oldtripID!= tripID)

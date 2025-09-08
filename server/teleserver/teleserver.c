@@ -267,7 +267,8 @@ FILE* createDataFile(CHANNEL_DATA* pld)
 {
 	if (!pld) return NULL;
 
-	if (pld->fp) fclose(pld->fp);
+	if (pld->fp) 
+		fclose(pld->fp);
 
 	// Create data directory if it doesn't exist yet, print error message on failure
 	if (!IsDir(dataDir) && mkdir(dataDir, 0755) < 0) {
@@ -338,13 +339,13 @@ void deviceLogout(CHANNEL_DATA* pld)
 	fprintf(getLogFile(), " LOGOUT:%s\n", pld->devid);
 }
 
-int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
+int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvSize)
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
 	uint64_t tick = GetTickCount64();
 	if (eventID == 0) {
-		if (!pld->fp && (pld->flags & FLAG_RUNNING)) {
+		if (!pld->fp) { // && (pld->flags & FLAG_RUNNING)
 			createDataFile(pld);
 		}
 		// save data to log file
@@ -353,16 +354,9 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 			fflush(pld->fp);
 		}
 	}
-#ifdef POSTGRES_DB
-	char db_master[512];
-	sprintf(db_master, "%s\0", payload);
-
-	//printf("-->Payload: %s\n", db_master);
-	data_id = InsertOBDMaster(pld, db_master);
-	//printf("Return data_id =%d\n", data_id);
-	fprintf(pld->fp, "Return data_id =%d\n", data_id);
-#endif
-
+	char rcvPayload[512];
+		memcpy(rcvPayload, payload, recvSize);
+	
 	char *p = payload;
 	uint32_t ts = 0;
 	int count = 0;
@@ -385,72 +379,106 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 		size_t len = strlen(value);
 		//printf("PID = %x, value = %s\n", pid, value);
 		if (len >= MAX_PID_DATA_LEN) len = MAX_PID_DATA_LEN - 1;
+	
 		// now we have pid and value
 		if (pid == 0) {
+			//printf("%s:%d  %d-->%s\n", __FUNCTION__, __LINE__, recvSize, value);
 			// special PID 0 for timestamp
 			ts = atol(value);
-			fprintf(pld->fp, "TS --> %d\t", ts);
+			//fprintf(pld->fp, "TS --> %d\t", ts);
 			continue;
 		}
-		
+		printf("%s:%d  %d-->\n", __FUNCTION__, __LINE__, recvSize);
 		// store in table
 		//int m = pid >> 8;
 		//if (m < PID_MODES) {
 			
 			pld->data[pid].ts = ts;
+			pld->ts = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
+			fprintf(pld->fp, "TS:%d  -->Payload: %s\t", pld->ts, rcvPayload);
 #ifdef POSTGRES_DB
-			fprintf(pld->fp, "\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
-			
+			if(data_id !=0)
+				fprintf(pld->fp, "\ndata_id = %d, pid = 0x%x, value = %s\n", data_id, pid, value);
 #endif
 			iVal = atoi(value);
 			// collect some stats
 			switch (pid) {
+			case PID_TRIP_ID:
+				//Confitech trip
+				pld->trip_id = atoi(value);
+#ifdef POSTGRES_DB
+				char db_master[512];
+				sprintf(db_master, "%s", rcvPayload);
+
+				//printf("Trip_ID:%d, ts:%d  -->Payload: %s\n",pld->trip_id, pld->ts, db_master);
+				fprintf(pld->fp, "Trip_ID:%d, ts:%d  -->Payload: %s\n", pld->trip_id, pld->ts, db_master);
+				data_id = InsertOBDMaster(pld, db_master, pld->trip_id, pld->ts);
+				//printf("Return data_id =%d\n", data_id);
+				fprintf(pld->fp, "Return data_id =%d\n", data_id);
+#endif
+				//printf("trip_id --> %d\t", pld->trip_id);
+				fprintf(pld->fp, "trip_id --> %d\t", pld->trip_id);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
+				break;
+
 			case PID_SPEED:
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_RUNTIME:
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_DISTANCE:
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
-			case PID_MAF_FLOW:
+			case PID_MAF_FLOW:  //float
 				fVal = (float)iVal/100;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
-			case PID_FUEL_LEVEL:
+			case PID_FUEL_LEVEL: //float
 				fVal = (float)iVal*100/255;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_COOLANT_TEMP:
 				iVal = iVal - 40;
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_RPM:
 				fVal = (float)iVal / 4;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_ENGINE_OIL_TEMP:
 				iVal = iVal - 40;
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_ENGINE_LOAD:
 				fVal = (float)iVal * 100 / 255;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_HYBRID_BATTERY_PERCENTAGE:
 				fVal = (float)iVal * 100 / 255;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_AUX_BATTERY:
 				fVal = (float)iVal;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_FUEL_TYPE:
 				if (iVal == 0) value = "NA";
@@ -462,14 +490,17 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				else if (iVal == 19) value = "Hybrid Diesel";
 				else if (iVal == 20) value = "Hybrid Electric";
 				else if (iVal == 22) value = "Hybrid Regenerative";
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidsValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GEAR:
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_ODOMETER:
 				fVal = iVal / 10;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_RSSI: /* signal strength */
 				pld->rssi = atoi(value);
@@ -477,20 +508,16 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				fprintf(pld->fp, "rssi --> %d\t", pld->rssi);
 				iVal = pld->rssi;
 				fVal = (float)pld->rssi;
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_VIN_ID:
 				memcpy(&pld->vin, value, strlen(value) - 1);
 				printf("VIN --> %s\t", pld->vin);
 				fprintf(pld->fp, "VIN --> %s\t", pld->vin);
 				//InsertMaster(gatr_scn, pld->vin, payload, ts);
-				insertPidValue(data_id, pid, iVal, fVal, value);
-				break;
-			case PID_TRIP_ID:
-				pld->tripId = atoi(value);
-				//printf("tripId --> %d\t", pld->tripId);
-				fprintf(pld->fp, "tripId --> %d\t", pld->tripId);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 
 			case PID_BATTERY_VOLTAGE: 
@@ -499,61 +526,70 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID)
 				
 				//printf("voltage --> %f\t", pld->voltage);
 				fprintf(pld->fp, "voltage --> %f\t", pld->voltage);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_GPS_LATITUDE:
 				fVal = atof(value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GPS_LONGITUDE:
 				fVal = atof(value);
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GPS_ALTITUDE:
 				fVal = atof(value);
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GPS_SPEED:
 				fVal = atof(value);
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GPS_HEADING:
 				fVal = (float)iVal;
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_GPS_SAT_COUNT:
 				fVal = (float)iVal;
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_GPS_TIME:
-				printf("GPS[%x] --> %x\t", pid, value);
+				//printf("GPS[%x] --> %x\t", pid, value);
 				fprintf(pld->fp, "GPS[%x] --> %s\t", pid, value);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			case PID_ACC:
 				sscanf(value, "%f;%f;%f", &pld->mems_acc[0], &pld->mems_acc[1], &pld->mems_acc[2]);
-				printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
+				//printf("mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
 				fprintf(pld->fp, "mems_acc --> %f, %f, %f\t", pld->mems_acc[0], pld->mems_acc[1], pld->mems_acc[2]);
-				insertPidValue(data_id, pid, 0, pld->mems_acc[0], value);
-				insertPidValue(data_id, pid+1, 0, pld->mems_acc[1], value);
-				insertPidValue(data_id, pid+2, 0, pld->mems_acc[2], value);
+				insertPidfValue(data_id, pid, pld->mems_acc[0]);// , value);
+				insertPidfValue(data_id, pid + 1, pld->mems_acc[1]);// , value);
+				insertPidfValue(data_id, pid + 2, pld->mems_acc[2]);// , value);
 				break;
 			case PID_DEVICE_TEMP:
 				pld->deviceTemp = atoi(value);
-				printf("deviceTemp --> %d\n", pld->deviceTemp);
+				//printf("deviceTemp --> %d\n", pld->deviceTemp);
 				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
-				insertPidValue(data_id, pid, iVal, fVal, value);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			}
 		//}
@@ -957,7 +993,7 @@ int uhPost(UrlHandlerParam* param)
 	printf("POST from %u.%u.%u.%u | ",
 		param->hs->ipAddr.caddr[3], param->hs->ipAddr.caddr[2], param->hs->ipAddr.caddr[1], param->hs->ipAddr.caddr[0]);
 
-	unsigned int count = processPayload(param->pucPayload, pld, 0);
+	unsigned int count = processPayload(param->pucPayload, pld, 0, param->payloadSize);
 	pld->dataReceived += param->payloadSize;
 	pld->ip = param->hs->ipAddr;
 
