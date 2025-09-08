@@ -343,6 +343,11 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
+	boolean isMapFlow = FALSE;
+	float MAP_FLOW = 0.0;
+	float fuelLevel = 0.0;
+	float kmpL=0.0;
+	float distance =0.0;
 	uint64_t tick = GetTickCount64();
 	if (eventID == 0) {
 		if (!pld->fp) { // && (pld->flags & FLAG_RUNNING)
@@ -361,6 +366,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 	uint32_t ts = 0;
 	int count = 0;
 	unsigned char gatr_scn = 1; // 1: OBD-Auto, 2: Special OBD
+	
 	do {
 		int pid = hex2uint16(p);
 		int iVal = 0;
@@ -435,18 +441,30 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				break;
 			case PID_DISTANCE:
 				fVal = (float)iVal;
+				distance = fVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_MAF_FLOW:  //float
 				fVal = (float)iVal/100;
+				MAP_FLOW = fVal;
+				isMapFlow = TRUE;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidfValue(data_id, pid, fVal);
 				break;
 			case PID_FUEL_LEVEL: //float
 				fVal = (float)iVal*100/255;
+				fuelLevel = fVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidfValue(data_id, pid, fVal);
+				if (isMapFlow)
+				{
+					//kmpL = MAP_FLOW * 0.0805 
+					float AFR = 14.7;
+					int typeEngine = 745;// Gasoline, Diesel: 832
+					float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
+					float mileage = distance / FuelConsumpution;
+				}
 				break;
 			case PID_COOLANT_TEMP:
 				iVal = iVal - 40;
