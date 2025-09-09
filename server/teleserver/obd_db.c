@@ -18,7 +18,7 @@ PGconn* connDb()
 		postgresParam.serverIP, postgresParam.serverPort, postgresParam.loginID,
 		postgresParam.loginPass, postgresParam.dbName);
 	//const char* conninfo = "host='127.0.0.1' user='kiapicav' port=5432 dbname='kiapi_cav' password='kiapi5005!@#' ";
-	/* ¿¬°á ¿­±â */
+	/* ì—°ê²° ì—´ê¸° */
 	//fprintf(pld->fd, "DB Conn -> %s\n", conninfo);
 
 	conn = PQconnectdb(conninfo);
@@ -33,7 +33,7 @@ PGconn* connDb()
 
 void dbClose()
 {
-	// ¿¿ ¿¿
+	// ì¢…ë£Œ
     PQfinish(conn);
 }
 
@@ -44,8 +44,8 @@ int insertPidiValue(int data_id, int pid, int iVal)
 	if (!conn)
 	{
 		conn = connDb();
-			fprintf(stderr, "µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á ½ÇÆĞ: %s\n", PQerrorMessage(conn));
-		// ¿¬°á »óÅÂ È®ÀÎ
+			fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
+		// ì—°ê²° ìƒíƒœ í™•ì¸
 		if (PQstatus(conn) == CONNECTION_BAD) {
 			PQfinish(conn);
 			return -1;
@@ -62,7 +62,7 @@ int insertPidiValue(int data_id, int pid, int iVal)
 		data_id, "1", pid, pid, iVal);
 
 	//printf("==> SQL: %s\n", sql);
-	/* Äõ¸®¹® ½ÇÇà */
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
 		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
@@ -83,8 +83,8 @@ int insertPidfValue(int data_id, int pid, float fVal)
 	if (!conn)
 	{
 		conn = connDb();
-		fprintf(stderr, "µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á ½ÇÆĞ: %s\n", PQerrorMessage(conn));
-		// ¿¬°á »óÅÂ È®ÀÎ
+		fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
+		// ì—°ê²° ìƒíƒœ í™•ì¸
 		if (PQstatus(conn) == CONNECTION_BAD) {
 			PQfinish(conn);
 			return -1;
@@ -101,7 +101,7 @@ int insertPidfValue(int data_id, int pid, float fVal)
 		data_id, "1", pid, pid, fVal);
 
 	//printf("==> SQL: %s\n", sql);
-	/* Äõ¸®¹® ½ÇÇà */
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
 		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
@@ -122,8 +122,8 @@ int insertPidsValue(int data_id, int pid, char *Val)
 	if (!conn)
 	{
 		conn = connDb();
-		fprintf(stderr, "µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á ½ÇÆĞ: %s\n", PQerrorMessage(conn));
-		// ¿¬°á »óÅÂ È®ÀÎ
+		fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
+		// ì—°ê²° ìƒíƒœ í™•ì¸
 		if (PQstatus(conn) == CONNECTION_BAD) {
 			PQfinish(conn);
 			return -1;
@@ -140,7 +140,7 @@ int insertPidsValue(int data_id, int pid, char *Val)
 		data_id, "1", pid, pid, Val);
 
 	//printf("==> SQL: %s\n", sql);
-	/* Äõ¸®¹® ½ÇÇà */
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
 		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
@@ -163,9 +163,9 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 	if (!conn)
 	{
 		conn = connDb();
-		// ¿¬°á »óÅÂ È®ÀÎ
+		// ì—°ê²° ìƒíƒœ í™•ì¸
 		if (PQstatus(conn) == CONNECTION_BAD) {
-			fprintf(stderr, "µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á ½ÇÆĞ: %s\n", PQerrorMessage(conn));
+			fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
 			PQfinish(conn);
 			return -1;
 		}
@@ -181,7 +181,7 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 		data_id, "1", pid, pid, iVal, fVal, value);
 		
 	//printf("==> SQL: %s\n", sql);
-	/* Äõ¸®¹® ½ÇÇà */
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
 		fprintf(stderr,"Query failed : %s", PQerrorMessage(conn));
@@ -195,15 +195,15 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 	}
 }
 
-int InsertOBDMaster(CHANNEL_DATA* pld, char* payload, int trip_id, int ts)
+int InsertOBDMaster(CHANNEL_DATA* pld, char* payload, uint32_t trip_id, uint32_t ts)
 {
 	PGresult* res;
 	if (!conn)
 	{
 		conn = connDb();
-		// ¿¬°á »óÅÂ È®ÀÎ
+		// ì—°ê²° ìƒíƒœ í™•ì¸
 		if (PQstatus(conn) == CONNECTION_BAD) {
-			fprintf(stderr, "µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á ½ÇÆĞ: %s\n", PQerrorMessage(conn));
+			fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
 			PQfinish(conn);
 			return -1;
 		}
@@ -219,7 +219,7 @@ int InsertOBDMaster(CHANNEL_DATA* pld, char* payload, int trip_id, int ts)
 		"1", pld->vin, payload, trip_id, ts);
 	//printf("QSQL : %s\n", sql);
 		
-	/* Äõ¸®¹® ½ÇÇà */
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
 		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
@@ -230,11 +230,46 @@ int InsertOBDMaster(CHANNEL_DATA* pld, char* payload, int trip_id, int ts)
 	{
 		//printf("Add new raw completed...");
 		
-		/* Äõ¸®¹® ½ÇÇà */
+		/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
 		char *data_id = PQgetvalue(res, 0, 0);
 		printf("Inserted data_id=%s\n", data_id);
 		
 		return atoi(data_id);
 	}
-	
+}
+
+int updateMileage(int data_id, float mile)
+{
+	PGresult* res;
+	if (!conn)
+	{
+		conn = connDb();
+		// ì—°ê²° ìƒíƒœ í™•ì¸
+		if (PQstatus(conn) == CONNECTION_BAD) {
+			fprintf(stderr, "ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° ì‹¤íŒ¨: %s\n", PQerrorMessage(conn));
+			PQfinish(conn);
+			return -1;
+		}
+		else
+		{
+			;
+			//printf("Postgresql make connection...\n");
+		}
+	}
+	char sql[512];
+	sprintf(sql, "update cavbase.tbl_obd_data_master set mileage ='%f' where data_id= %d;", mile, data_id);
+	printf("QSQL : %s\n", sql);
+		
+	/* ì¿¼ë¦¬ë¬¸ ì‹¤í–‰ */
+	res = PQexec(conn, sql);
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
+		PQclear(res);
+		return -1;
+	}
+	else
+	{
+		printf("update data_id=%d\n", data_id);
+		
+	}
 }

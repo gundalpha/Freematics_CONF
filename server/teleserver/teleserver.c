@@ -11,10 +11,14 @@
 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
+------------------------------
+* this file was modified by Confitech for supporting Kiapi project.
+
 ******************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <ctype.h>
@@ -343,7 +347,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
-	boolean isMapFlow = FALSE;
+	BOOL isMapFlow = FALSE;
 	float MAP_FLOW = 0.0;
 	float fuelLevel = 0.0;
 	float kmpL=0.0;
@@ -433,6 +437,20 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fVal = (float)iVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidiValue(data_id, pid, iVal);
+				if (isMapFlow)
+				{
+					//kmpL = MAP_FLOW * 0.0805 
+					float Dist = (fVal * 5)/3600;   // Distance = vehicle speed * 5 sec / 3600 sec
+					float AFR = 14.7;
+					float KML = 0.425144;
+					int typeEngine = 745;// Gasoline, Diesel: 832
+					float instFuel = 1 /(AFR * 6.26) * KML * MAP_FLOW * 5/60; 
+					//float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
+					float mileage = Dist / instFuel;
+					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
+					fprintf(pld->fp, "PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
+					updateMileage(data_id, mileage);
+				}
 				break;
 			case PID_RUNTIME:
 				fVal = (float)iVal;
@@ -457,14 +475,6 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fuelLevel = fVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidfValue(data_id, pid, fVal);
-				if (isMapFlow)
-				{
-					//kmpL = MAP_FLOW * 0.0805 
-					float AFR = 14.7;
-					int typeEngine = 745;// Gasoline, Diesel: 832
-					float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
-					float mileage = distance / FuelConsumpution;
-				}
 				break;
 			case PID_COOLANT_TEMP:
 				iVal = iVal - 40;

@@ -42,7 +42,7 @@
 #define PID_TRIP_DISTANCE 0x30
 
 #define PID_VIN_ID		0x40
-#define PID_TRIP_ID		0x50
+#define PID_TRIP_ID		0x50	// add TRIPID from OBD device
 
 #define PID_RSSI		0x81
 #define PID_DEVICE_TEMP 0x82

@@ -118,7 +118,7 @@ typedef struct {
 	uint16_t flags;
 	uint16_t devflags;
 	// instant data
-	PID_DATA data[256 * PID_MODES];
+	PID_DATA data[256 * PID_MODES];	
 	// cache
 	CACHE_DATA* cache;
 	uint32_t cacheSize;
@@ -134,16 +134,16 @@ typedef struct {
 	uint32_t txCount;
 	uint32_t dataReceived; /* bytes */
 	uint32_t elapsedTime; /* seconds */
-	int16_t rssi;
+	int16_t rssi;		// add RSSI from OBD device(LTE-M)
 	uint8_t unused;
 	uint8_t deviceTemp;
 	float sampleRate;
-	uint32_t trip_id;
-	uint32_t	ts;
-	float voltage;
-	float mems_acc[3];
-	char vin[20];
-	char devid[32];
+	uint32_t trip_id;	// adding for tripID by OBD Device
+	uint32_t	ts;		// adding generated time of OBD Device
+	float voltage;		// add voltage from OBD device
+	float mems_acc[3];	// add mems X, Y, Z from OBD device
+	char vin[20];		// add VIN code from OBD device
+	char devid[32];		// add devID from OBD device
 	IPADDR ip;
 	// authorized UDP source address
 	struct sockaddr_in udpPeer;

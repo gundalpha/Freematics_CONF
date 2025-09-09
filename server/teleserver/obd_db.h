@@ -15,5 +15,7 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char *value);
 int insertPidsValue(int data_id, int pid, char* value);
 int insertPidiValue(int data_id, int pid, int iVal);
 int insertPidfValue(int data_id, int pid, float fVal);
+int insertPidfValue(int data_id, int pid, float fVal);
+int updateMileage(int data_id, float mile);
 void dbClose();
 #endif // __OBD_DB_H__
