@@ -463,7 +463,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				{
 					int ts = pld->ts - pld->prevTs;
 
-					printf("Received MAF_FLOW --> Processing FuelMilleage for %d(pl:%d, sam:%d \n", ts, pld->ts, pld->prevTs);
+					//printf("Received MAF_FLOW --> Processing FuelMilleage for %d(pl:%d, sam:%d \n", ts, pld->ts, pld->prevTs);
 
 					//kmpL = MAP_FLOW * 0.0805 
 					float Dist = (pld->vs *  ts) / 3600;   // Distance = vehicle speed * 5 sec / 3600 sec
