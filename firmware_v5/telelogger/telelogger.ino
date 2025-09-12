@@ -70,11 +70,11 @@ PID_POLLING_INFO obdData[]= {
   {PID_RPM, 2},         // RPM
   {PID_ENGINE_OIL_TEMP, 2}, // Engine Oil Temp.
   {PID_ENGINE_LOAD, 2},
+  {PID_ODOMETER, 3},    // ODO Meter(4자리)
   {PID_HYBRID_BATTERY_PERCENTAGE, 3},
   {PID_AUX_BATTERY, 3},
   {PID_FUEL_TYPE, 3},
   {PID_GEAR, 3},        // Is this pid for gear position ? let's check
-  {PID_ODOMETER, 3},    // ODO Meter(4자리)
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},
@@ -268,20 +268,31 @@ void processOBD(CBuffer* buffer)
   Serial.print(" Count ");
   Serial.println(sizeof(obdData)/sizeof(obdData[0]));
 
+#if OBD_SIMULATION
+  Serial.println("OBD Simulation mode");
   for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
-#if 0 // OBD_SIMULATION
-    {
-      int value = i;
+      randomSeed(1);
+      int value = 0;
       byte pid = obdData[i].pid;
       obdData[i].ts = millis();
-      obdData[i].value = value  ;
-      Serial.print("OBD Simulation mode");
+      if( i==0) {
+        value = 60;
+        //obdData[i].value = 60  ;
+      }
+      else
+      {
+
+        value = random(0,1000);
+        //obdData[i].value =  random(100)  ;
+      }
       //Serial.print(pid); 
       //Serial.print(" Value ");
       //Serial.println(value);
       buffer->add((uint16_t)pid | 0x100, ELEMENT_INT32, &value, sizeof(value));
     } 
 #else
+Serial.println("OBD RealHW mode");
+for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
     
     if (obdData[i].tier > tier) {
       // reset previous tier index
@@ -298,17 +309,18 @@ void processOBD(CBuffer* buffer)
       }
     }
     
-    Serial.print(i);
-   	Serial.println("th OBD ");
+    //Serial.print(i);
+   	//Serial.println("th OBD ");
     {
       uint16_t pid = obdData[i].pid;
+     /*
       //byte pid = obdData[i].pid;
       if (!obd.isValidPID(pid)) 
       {
 		    Serial.println("OBD not valid");
         continue;
       }
-      
+      */
       int value;
       if (obd.readPID(pid, value)) {
         Serial.print(" read ");
@@ -324,10 +336,9 @@ void processOBD(CBuffer* buffer)
           printTimeoutStats();
           //break;
       }
-    }
-    //if (tier > 1) break;
-#endif //OBD_SIMULATION
+    }    //if (tier > 1) break;
   }
+#endif //OBD_SIMULATION
   int kph = obdData[0].value;
   if (kph >= 2) lastMotionTime = millis();
 }

@@ -347,7 +347,9 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
-	BOOL isMapFlow = FALSE;
+	static BOOL isMapFlow = FALSE;
+	static uint32_t sampleTime = 0;
+	static uint32_t psampleTime = 0;
 	float MAP_FLOW = 0.0;
 	float fuelLevel = 0.0;
 	float kmpL=0.0;
@@ -395,16 +397,18 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 			//printf("%s:%d  %d-->%s\n", __FUNCTION__, __LINE__, recvSize, value);
 			// special PID 0 for timestamp
 			ts = atol(value);
+
 			//fprintf(pld->fp, "TS --> %d\t", ts);
 			continue;
 		}
-		printf("%s:%d  %d-->\n", __FUNCTION__, __LINE__, recvSize);
+		//printf("%s:%d  %d-->\n", __FUNCTION__, __LINE__, recvSize);
 		// store in table
 		//int m = pid >> 8;
 		//if (m < PID_MODES) {
 			
 			pld->data[pid].ts = ts;
 			pld->ts = ts;
+			sampleTime = ts;
 			memcpy(pld->data[pid].value, value, len + 1);
 			fprintf(pld->fp, "TS:%d  -->Payload: %s\t", pld->ts, rcvPayload);
 #ifdef POSTGRES_DB
@@ -417,6 +421,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 			case PID_TRIP_ID:
 				//Confitech trip
 				pld->trip_id = atoi(value);
+
 #ifdef POSTGRES_DB
 				char db_master[512];
 				sprintf(db_master, "%s", rcvPayload);
@@ -437,20 +442,8 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fVal = (float)iVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidiValue(data_id, pid, iVal);
-				if (isMapFlow)
-				{
-					//kmpL = MAP_FLOW * 0.0805 
-					float Dist = (fVal * 5)/3600;   // Distance = vehicle speed * 5 sec / 3600 sec
-					float AFR = 14.7;
-					float KML = 0.425144;
-					int typeEngine = 745;// Gasoline, Diesel: 832
-					float instFuel = 1 /(AFR * 6.26) * KML * MAP_FLOW * 5/60; 
-					//float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
-					float mileage = Dist / instFuel;
-					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
-					fprintf(pld->fp, "PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
-					updateMileage(data_id, mileage);
-				}
+				pld->vs = fVal;
+				
 				break;
 			case PID_RUNTIME:
 				fVal = (float)iVal;
@@ -466,9 +459,28 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 			case PID_MAF_FLOW:  //float
 				fVal = (float)iVal/100;
 				MAP_FLOW = fVal;
-				isMapFlow = TRUE;
-				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidfValue(data_id, pid, fVal);
+				{
+					int ts = pld->ts - pld->prevTs;
+
+					printf("Received MAF_FLOW --> Processing FuelMilleage for %d(pl:%d, sam:%d \n", ts, pld->ts, pld->prevTs);
+
+					//kmpL = MAP_FLOW * 0.0805 
+					float Dist = (pld->vs *  ts) / 3600;   // Distance = vehicle speed * 5 sec / 3600 sec
+					float AFR = 14.7;
+					float KML = 0.425144;
+					//int typeEngine = 745;// Gasoline, Diesel: 832
+					float instFuel = 1 / (AFR * 6.26) * KML * MAP_FLOW * ts / 60 ;
+					//float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
+					float mileage = Dist / instFuel/ 100;
+					if (mileage > 100)
+						mileage = 99.9;
+					
+					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %.1f\n", fVal, Dist, instFuel, mileage);
+					fprintf(pld->fp, "PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
+					updateMileage(data_id, mileage);
+					sampleTime = pld->ts;
+				}
 				break;
 			case PID_FUEL_LEVEL: //float
 				fVal = (float)iVal*100/255;
@@ -618,6 +630,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fprintf(pld->fp, "deviceTemp --> %d\n", pld->deviceTemp);
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidsValue(data_id, pid, value);
+				pld->prevTs = pld->ts;
 				break;
 			}
 		//}

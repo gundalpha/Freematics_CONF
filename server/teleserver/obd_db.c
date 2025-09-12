@@ -58,7 +58,7 @@ int insertPidiValue(int data_id, int pid, int iVal)
 	}
 	char sql[256];
 	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_data, rgst_dtm) "
-		" VALUES(%d , '%s', %d , '\\x%x', '%d' , current_timestamp); ",
+		" VALUES(%d , '%s', %d , '0x%x', '%d' , current_timestamp); ",
 		data_id, "1", pid, pid, iVal);
 
 	//printf("==> SQL: %s\n", sql);
@@ -97,7 +97,7 @@ int insertPidfValue(int data_id, int pid, float fVal)
 	}
 	char sql[256];
 	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_data, rgst_dtm) "
-		" VALUES(%d , '%s', %d , '\\x%x', '%f' , current_timestamp); ",
+		" VALUES(%d , '%s', %d , '0x%x', '%f' , current_timestamp); ",
 		data_id, "1", pid, pid, fVal);
 
 	//printf("==> SQL: %s\n", sql);
@@ -136,7 +136,7 @@ int insertPidsValue(int data_id, int pid, char *Val)
 	}
 	char sql[256];
 	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_data, rgst_dtm) "
-		" VALUES(%d , '%s', %d , '\\x%x', '%s', current_timestamp); ",
+		" VALUES(%d , '%s', %d , '0x%x', '%s', current_timestamp); ",
 		data_id, "1", pid, pid, Val);
 
 	//printf("==> SQL: %s\n", sql);
@@ -177,7 +177,7 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 	}
 	char sql[256];
 	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data (data_id, svc_mode_no, pid_dec, pid_hex, obd_bin_data, obd_float_data, obd_data, rgst_dtm) "
-		" VALUES(%d , '%s', %d , '%x' , %d, %f, '%s' , current_timestamp); ", 
+		" VALUES(%d , '%s', %d , '0x%x' , %d, %f, '%s' , current_timestamp); ", 
 		data_id, "1", pid, pid, iVal, fVal, value);
 		
 	//printf("==> SQL: %s\n", sql);

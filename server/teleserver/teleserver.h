@@ -147,6 +147,8 @@ typedef struct {
 	IPADDR ip;
 	// authorized UDP source address
 	struct sockaddr_in udpPeer;
+	uint8_t vs;		//vehicle speed;
+	uint32_t prevTs;
 	// handles
 	FILE* fp;
 } CHANNEL_DATA;
