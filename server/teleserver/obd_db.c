@@ -257,7 +257,7 @@ int updateMileage(int data_id, float mile)
 		}
 	}
 	char sql[512];
-	sprintf(sql, "update cavbase.tbl_obd_data_master set mileage ='%f' where data_id= %d;", mile, data_id);
+	sprintf(sql, "update cavbase.tbl_obd_data_master set mileage ='%.1f' where data_id= %d;", mile, data_id);
 	printf("QSQL : %s\n", sql);
 		
 	/* 쿼리문 실행 */

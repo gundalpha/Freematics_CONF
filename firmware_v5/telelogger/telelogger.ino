@@ -59,8 +59,8 @@ typedef struct {
 } PID_POLLING_INFO;
 
 PID_POLLING_INFO obdData[]= {
-  {0,1},  // support 0 ~ 1f
-  {0x20,1}, // support 20 ~ 3f
+//  {0,1},  // support 0 ~ 1f
+//  {0x20,1}, // support 20 ~ 3f
   {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
   {PID_RUNTIME,  1}, // Driving Time
   {PID_DISTANCE, 1}, // Driving Distance
