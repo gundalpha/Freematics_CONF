@@ -348,6 +348,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
 	static BOOL isMapFlow = FALSE;
+	static BOOL isGasoline = TRUE;
 	static uint32_t sampleTime = 0;
 	static uint32_t psampleTime = 0;
 	float MAP_FLOW = 0.0;
@@ -473,6 +474,10 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 					float instFuel = 1 / (AFR * 6.26) * KML * MAP_FLOW * ts / 60 ;
 					//float FuelConsumpution = (MAP_FLOW * 3600) / (AFR * typeEngine);
 					float mileage = Dist / instFuel/ 100;
+					if (isGasoline)
+						mileage = mileage;
+					else mileage = mileage*1.149; //Diesel
+
 					if (mileage > 100)
 						mileage = 99.9;
 					
@@ -522,8 +527,14 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				break;
 			case PID_FUEL_TYPE:
 				if (iVal == 0) value = "NA";
-				else if (iVal == 1) value = "Gasoline";
-				else if (iVal == 4) value = "Diesel";
+				else if (iVal == 1) {
+					value = "Gasoline";
+					isGasoline = TRUE;
+				}
+				else if (iVal == 4) {
+					value = "Diesel";
+					isGasoline = FALSE;
+				}
 				else if (iVal == 5) value = "LPG";
 				else if (iVal == 8) value = "Electric";
 				else if (iVal == 17) value = "Hybrid Gasoline";
