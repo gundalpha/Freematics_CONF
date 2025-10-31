@@ -65,12 +65,13 @@ PID_POLLING_INFO obdData[]= {
   {PID_RUNTIME,  1}, // Driving Time
   {PID_DISTANCE, 1}, // Driving Distance
   {PID_MAF_FLOW, 1},  // MAF to Fuel Consumption (per Second)
-  {PID_FUEL_LEVEL, 2},   // Fuel Level  --> Average Fuel Level
+  {PID_FUEL_LEVEL, 1},   // Fuel Level  --> Average Fuel Level
   {PID_COOLANT_TEMP,2}, //Coolant Temp
   {PID_RPM, 2},         // RPM
   {PID_ENGINE_OIL_TEMP, 2}, // Engine Oil Temp.
   {PID_ENGINE_LOAD, 2},
-  {PID_ODOMETER, 3},    // ODO Meter(4자리)
+  {PID_DISTANCE_WITH_MIL, 2},    // Distance after MIL(4자리)
+  {PID_ODOMETER  ,3}, // ODO Meter(4자리)
   {PID_HYBRID_BATTERY_PERCENTAGE, 3},
   {PID_AUX_BATTERY, 3},
   {PID_FUEL_TYPE, 3},
@@ -320,7 +321,7 @@ for (byte i = 0; i < sizeof(obdData) / sizeof(obdData[0]); i++) {
 		    Serial.println("OBD not valid");
         continue;
       }
-      */
+     */
       int value;
       if (obd.readPID(pid, value)) {
         Serial.print(" read ");
@@ -755,10 +756,22 @@ void process()
   // Confitech add new Trip ID, 0x30
   buffer->add(PID_TRIP_ID, ELEMENT_INT32, &tripID, sizeof(tripID));
   // Confitech add new 0x20, VIN ID
-  Serial.print("Sending VIN :");
-  Serial.println(vin);
-  buffer->add(PID_VIN_ID, ELEMENT_CHAR, &vin, 18);
-  
+  if(vin[0]== ':')
+  {
+    char buf[128];
+    Serial.print("VIN is not set");
+    if (obd.getVIN(buf, sizeof(buf))) {
+      memcpy(vin, buf, sizeof(vin) - 1);
+      Serial.print("VIN:");
+      Serial.println(vin);
+    }
+  }
+  else
+  {
+    Serial.print("Sending VIN :");
+    Serial.println(vin);
+    buffer->add(PID_VIN_ID, ELEMENT_CHAR, &vin, 18);
+  }
   //Send DTC Code First time
   if(dtcCount > 0 && oldtripID!= tripID)
   {

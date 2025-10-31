@@ -347,6 +347,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
+	int dist = 0;
 	static BOOL isMapFlow = FALSE;
 	static BOOL isGasoline = TRUE;
 	static uint32_t sampleTime = 0;
@@ -437,6 +438,8 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fprintf(pld->fp, "trip_id --> %d\t", pld->trip_id);
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidiValue(data_id, pid, iVal);
+				fprintf(pld->fp, "VIN --> %d\t", pld->vin);
+				insertPidsValue(data_id, 0x40, pld->vin);
 				break;
 
 			case PID_SPEED:
@@ -455,8 +458,23 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				fVal = (float)iVal;
 				distance = fVal;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
-				insertPidiValue(data_id, pid, iVal);
+				dist = getDistance(pld->vin);
+				insertPidiValue(data_id, pid, iVal+dist);
 				break;
+			case PID_DISTANCE_WITH_MIL:
+				fVal = (float)iVal;
+				distance = fVal;
+				dist = getDistance(pld->vin);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidiValue(data_id, pid, iVal+dist);
+				break;
+			case PID_ODOMETER:
+				fVal = iVal / 10;
+				dist = getDistance(pld->vin);
+				//insertPidValue(data_id, pid, iVal, fVal, value);
+				insertPidfValue(data_id, pid, dist + iVal);
+				break;
+
 			case PID_MAF_FLOW:  //float
 				fVal = (float)iVal/100;
 				MAP_FLOW = fVal;
@@ -483,6 +501,8 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 					
 					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %.1f\n", fVal, Dist, instFuel, mileage);
 					fprintf(pld->fp, "PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
+					
+					insertPidiValue(data_id, 0x3, mileage); // 0x3 for mileage at the obd_data table;
 					updateMileage(data_id, mileage);
 					sampleTime = pld->ts;
 				}
@@ -548,11 +568,6 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidsValue(data_id, pid, value);
 				break;
-			case PID_ODOMETER:
-				fVal = iVal / 10;
-				//insertPidValue(data_id, pid, iVal, fVal, value);
-				insertPidfValue(data_id, pid, fVal);
-				break;
 			case PID_RSSI: /* signal strength */
 				pld->rssi = atoi(value);
 				//printf("rssi --> %d\t", pld->rssi);
@@ -562,6 +577,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidiValue(data_id, pid, iVal);
 				break;
+			/*
 			case PID_VIN_ID:
 				memcpy(&pld->vin, value, strlen(value) - 1);
 				printf("VIN --> %s\t", pld->vin);
@@ -570,7 +586,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidsValue(data_id, pid, value);
 				break;
-
+			*/
 			case PID_BATTERY_VOLTAGE: 
 				fVal = iVal / 100;
 				pld->voltage = fVal; 
@@ -642,6 +658,10 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				//insertPidValue(data_id, pid, iVal, fVal, value);
 				insertPidsValue(data_id, pid, value);
 				pld->prevTs = pld->ts;
+				break;
+			deafult:
+				fprintf(pld->fp, "PID(%x) --> %d\n", pid, value);
+				insertPidsValue(data_id, pid, value);
 				break;
 			}
 		//}
@@ -1424,8 +1444,8 @@ int main(int argc,char* argv[])
 	httpParam.pfnIncomingUDP = incomingUDPCallback;
 	httpParam.pfnProxyData = phData;
 #ifdef POSTGRES_DB
-	postgresParam.serverIP = "125.141.31.131";
-	postgresParam.serverPort = 55432;
+	postgresParam.serverIP = "127.0.0.1"; // "125.141.31.131";
+	postgresParam.serverPort = 5432;      // 55432;
 	postgresParam.loginID = "kiapicav";
 	postgresParam.loginPass = "kiapi5005!@#";
 	postgresParam.dbName = "kiapi_cav";

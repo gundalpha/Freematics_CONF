@@ -11,7 +11,7 @@
 #include "utility/OBD.h"
 
 #define OBD_TIMEOUT_SHORT 1000 /* ms */
-#define OBD_TIMEOUT_LONG 10000 /* ms */
+#define OBD_TIMEOUT_LONG 1000 /* ms */
 
 int dumpLine(char* buffer, int len);
 uint16_t hex2uint16(const char *p);

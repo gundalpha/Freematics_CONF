@@ -61,7 +61,7 @@ int insertPidiValue(int data_id, int pid, int iVal)
 		" VALUES(%d , '%s', %d , '0x%x', '%d' , current_timestamp); ",
 		data_id, "1", pid, pid, iVal);
 
-	//printf("==> SQL: %s\n", sql);
+	printf("==> SQL: %s\n", sql);
 	/* 쿼리문 실행 */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -100,7 +100,7 @@ int insertPidfValue(int data_id, int pid, float fVal)
 		" VALUES(%d , '%s', %d , '0x%x', '%f' , current_timestamp); ",
 		data_id, "1", pid, pid, fVal);
 
-	//printf("==> SQL: %s\n", sql);
+	printf("==> SQL: %s\n", sql);
 	/* 쿼리문 실행 */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -139,7 +139,7 @@ int insertPidsValue(int data_id, int pid, char *Val)
 		" VALUES(%d , '%s', %d , '0x%x', '%s', current_timestamp); ",
 		data_id, "1", pid, pid, Val);
 
-	//printf("==> SQL: %s\n", sql);
+	printf("==> SQL: %s\n", sql);
 	/* 쿼리문 실행 */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -180,7 +180,7 @@ int insertPidValue(int data_id, int pid, int iVal, float fVal, char* value)
 		" VALUES(%d , '%s', %d , '0x%x' , %d, %f, '%s' , current_timestamp); ", 
 		data_id, "1", pid, pid, iVal, fVal, value);
 		
-	//printf("==> SQL: %s\n", sql);
+	printf("==> SQL: %s\n", sql);
 	/* 쿼리문 실행 */
 	res = PQexec(conn, sql);
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -217,7 +217,7 @@ int InsertOBDMaster(CHANNEL_DATA* pld, char* payload, uint32_t trip_id, uint32_t
 	sprintf(sql, "INSERT INTO cavbase.tbl_obd_data_master(data_id, gatr_scn, vin, data_gatr_expl, rgst_dtm, trip_id, ts_dtm)"
 		" values ( nextval('cavbase.seq_obd_data_mst_id'::regclass), '%s', '%s', '%s', current_timestamp, %d, %d )  RETURNING data_id ;",
 		"1", pld->vin, payload, trip_id, ts);
-	//printf("QSQL : %s\n", sql);
+	printf("QSQL : %s\n", sql);
 		
 	/* 쿼리문 실행 */
 	res = PQexec(conn, sql);
@@ -271,5 +271,46 @@ int updateMileage(int data_id, float mile)
 	{
 		printf("update data_id=%d\n", data_id);
 		
+	}
+}
+
+int getDistance( char* vin)
+{
+	PGresult* res;
+	if (!conn)
+	{
+		conn = connDb();
+		// 연결 상태 확인
+		if (PQstatus(conn) == CONNECTION_BAD) {
+			fprintf(stderr, "데이터베이스 연결 실패: %s\n", PQerrorMessage(conn));
+			PQfinish(conn);
+			return -1;
+		}
+		else
+		{
+			;
+			//printf("Postgresql make connection...\n");
+		}
+	}
+	char sql[512];
+	sprintf(sql, "SELECT crtn_dist FROM cavbase.tbl_vin_odo_crtn WHERE vin = '%s';", vin);
+	printf("QSQL : %s\n", sql);
+
+	/* 쿼리문 실행 */
+	res = PQexec(conn, sql);
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		fprintf(stderr, "Query failed : %s", PQerrorMessage(conn));
+		PQclear(res);
+		return -1;
+	}
+	else
+	{
+		//printf("Add new raw completed...");
+
+		/* 쿼리문 실행 */
+		char* data_id = PQgetvalue(res, 0, 0);
+		printf("Result distance=%s\n", data_id);
+
+		return atoi(data_id);
 	}
 }
