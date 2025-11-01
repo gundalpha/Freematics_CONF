@@ -343,7 +343,8 @@ void deviceLogout(CHANNEL_DATA* pld)
 	fprintf(getLogFile(), " LOGOUT:%s\n", pld->devid);
 }
 
-int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvSize)
+int 
+ o8(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvSize)
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
@@ -496,7 +497,7 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 						mileage = mileage;
 					else mileage = mileage*1.149; //Diesel
 
-					if (mileage > 100)
+					if (mileage < 0 || mileage > 100)
 						mileage = 99.9;
 					
 					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %.1f\n", fVal, Dist, instFuel, mileage);
@@ -520,9 +521,8 @@ int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvS
 				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_RPM:
-				fVal = (float)iVal / 4;
 				//insertPidValue(data_id, pid, iVal, fVal, value);
-				insertPidfValue(data_id, pid, fVal);
+				insertPidiValue(data_id, pid, iVal);
 				break;
 			case PID_ENGINE_OIL_TEMP:
 				iVal = iVal - 40;

@@ -61,21 +61,21 @@ typedef struct {
 PID_POLLING_INFO obdData[]= {
 //  {0,1},  // support 0 ~ 1f
 //  {0x20,1}, // support 20 ~ 3f
-  {PID_SPEED, 1},    // Vehicle Speed --> Average Speed
-  {PID_RUNTIME,  1}, // Driving Time
-  {PID_DISTANCE, 1}, // Driving Distance
-  {PID_MAF_FLOW, 1},  // MAF to Fuel Consumption (per Second)
-  {PID_FUEL_LEVEL, 1},   // Fuel Level  --> Average Fuel Level
-  {PID_COOLANT_TEMP,2}, //Coolant Temp
-  {PID_RPM, 2},         // RPM
-  {PID_ENGINE_OIL_TEMP, 2}, // Engine Oil Temp.
-  {PID_ENGINE_LOAD, 2},
-  {PID_DISTANCE_WITH_MIL, 2},    // Distance after MIL(4자리)
-  {PID_ODOMETER  ,3}, // ODO Meter(4자리)
-  {PID_HYBRID_BATTERY_PERCENTAGE, 3},
-  {PID_AUX_BATTERY, 3},
-  {PID_FUEL_TYPE, 3},
-  {PID_GEAR, 3},        // Is this pid for gear position ? let's check
+  {PID_SPEED, 1},    // 0x10D, Vehicle Speed --> Average Speed
+  {PID_RUNTIME,  1}, // 0x11F, Driving Time
+  {PID_DISTANCE, 1}, // 0x131, Driving Distance
+  {PID_MAF_FLOW, 1},  // 0x110, MAF to Fuel Consumption (per Second)
+  {PID_FUEL_LEVEL, 1},   // 0x12F, Fuel Level  --> Average Fuel Level
+  {PID_COOLANT_TEMP,2}, //0x105, Coolant Temp
+  {PID_RPM, 2},         // 0x10C, RPM
+  {PID_ENGINE_OIL_TEMP, 2}, // 0x15C, Engine Oil Temp.
+  {PID_ENGINE_LOAD, 2}, // 0x104, Engine Load
+  {PID_DISTANCE_WITH_MIL, 2},    // 0x121, Distance after MIL(4자리)
+  {PID_ODOMETER  ,3}, // 0x122, ODO Meter(4자리)
+  {PID_HYBRID_BATTERY_PERCENTAGE, 3}, // 0x15B, Hybrid Battery Percentage
+  {PID_AUX_BATTERY, 3}, // 0  x124, Auxiliary Battery Voltage
+  {PID_FUEL_TYPE, 3}, // 0x151, Fuel Type
+  {PID_GEAR, 3},        //   0x1A4, Gear Position
   //{PID_THROTTLE, 1},
   //{PID_FUEL_PRESSURE, 2},
   //{PID_TIMING_ADVANCE, 2},
