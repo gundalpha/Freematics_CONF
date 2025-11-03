@@ -343,8 +343,7 @@ void deviceLogout(CHANNEL_DATA* pld)
 	fprintf(getLogFile(), " LOGOUT:%s\n", pld->devid);
 }
 
-int 
- o8(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvSize)
+int processPayload(char* payload, CHANNEL_DATA* pld, uint16_t eventID, int recvSize)
 {
 	uint16_t tmpVolt = 0;
 	int data_id = 0;
@@ -503,7 +502,7 @@ int
 					printf("PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %.1f\n", fVal, Dist, instFuel, mileage);
 					fprintf(pld->fp, "PID_SPEED = %f, Distance = %f, instFule = %f  --> Mileage: %f\n", fVal, Dist, instFuel, mileage);
 					
-					insertPidiValue(data_id, 0x3, mileage); // 0x3 for mileage at the obd_data table;
+					insertPidfValue(data_id, 0x3, mileage); // 0x3 for mileage at the obd_data table;
 					updateMileage(data_id, mileage);
 					sampleTime = pld->ts;
 				}
